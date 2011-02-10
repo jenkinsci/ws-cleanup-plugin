@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.jvnet.hudson.plugins</groupId>
+    <artifactId>plugin</artifactId>
+    <version>1.391</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  
+  <artifactId>ws-cleanup</artifactId>
+  <packaging>hpi</packaging>
+  <name>Hudson ws-cleanup plugin</name>
+  <version>0.1-SNAPSHOT</version>
+  <url></url>
+
+  <developers>
+    <developer>
+      <id>vjuranek</id>
+      <name>Vojtech Juranek</name>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git://github.com/jenkinsci/ws-cleanup.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/ws-cleanup.git</developerConnection>
+    <url>http://github.com/jenkinsci/ws-cleanup</url>
+  </scm>
+
+
+  <distributionManagement>
+    <repository>
+      <id>java.net-m2-repository</id>
+      <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/
+      </url>
+    </repository>
+  </distributionManagement>
+
+</project>
