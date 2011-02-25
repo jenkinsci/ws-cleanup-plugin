@@ -38,8 +38,6 @@ public class PreBuildCleanup extends BuildWrapper {
 	@Override
 	public void preCheckout(AbstractBuild build, Launcher launcher,
 			BuildListener listener) {
-		System.out.println("precheckout called");
-		System.out.println("build: " + build.toString());
 		listener.getLogger().append("\nDeleting project workspace... ");
 		FilePath ws = build.getWorkspace();
 		if (ws != null) {
@@ -57,8 +55,6 @@ public class PreBuildCleanup extends BuildWrapper {
 	}
 
 	@Extension
-	// this marker indicates Hudson that this is an implementation of an
-	// extension point.
 	public static final class DescriptorImpl extends Descriptor<BuildWrapper> {
 
 		/**
