@@ -11,7 +11,7 @@
   <artifactId>ws-cleanup</artifactId>
   <packaging>hpi</packaging>
   <name>Hudson ws-cleanup plugin</name>
-  <version>0.2</version>
+  <version>0.3-SNAPSHOT</version>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/Workspace+clenaup</url>
 
   <developers>
