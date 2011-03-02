@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
@@ -25,7 +26,7 @@ public class WsCleanup extends Notifier {
 
         listener.getLogger().append("\nDeleting project workspace... ");
         try {
-            build.getProject().getWorkspace().deleteRecursive();
+            build.getWorkspace().deleteRecursive();
             listener.getLogger().append("done\n\n");
         } catch (InterruptedException ex) {
             Logger.getLogger(WsCleanup.class.getName()).log(Level.SEVERE, null, ex);
@@ -51,7 +52,7 @@ public class WsCleanup extends Notifier {
         }
 
         @Override
-        public Notifier newInstance(StaplerRequest req) throws FormException {
+        public Notifier newInstance(StaplerRequest req, JSONObject formData) throws FormException {
             return new WsCleanup();
         }
 
