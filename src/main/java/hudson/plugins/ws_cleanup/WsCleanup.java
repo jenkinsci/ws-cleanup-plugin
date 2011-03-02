@@ -34,17 +34,10 @@ public class WsCleanup extends Notifier {
         return true;
     }
 
-    @Override
-    public BuildStepDescriptor getDescriptor() {
-        return DESCRIPTOR;
-    }
-
     public BuildStepMonitor getRequiredMonitorService(){
     	return BuildStepMonitor.STEP;
     }
     
-    public static final BuildStepDescriptor DESCRIPTOR = new DescriptorImpl();
-
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor {
 
