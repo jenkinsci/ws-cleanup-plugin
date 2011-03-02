@@ -5,14 +5,13 @@
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
     <version>1.399</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
   
   <artifactId>ws-cleanup</artifactId>
   <packaging>hpi</packaging>
-  <name>Hudson ws-cleanup plugin</name>
+  <name>Jenkins Workspace Cleanup Plugin</name>
   <version>0.3-SNAPSHOT</version>
-  <url>http://wiki.jenkins-ci.org/display/JENKINS/Workspace+clenaup</url>
+  <url>http://wiki.jenkins-ci.org/display/JENKINS/Workspace+Cleanup+Plugin</url>
 
   <developers>
     <developer>
@@ -22,24 +21,22 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git://github.com/jenkinsci/ws-cleanup.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/ws-cleanup.git</developerConnection>
-    <url>http://github.com/jenkinsci/ws-cleanup</url>
+    <connection>scm:git:git://github.com/jenkinsci/ws-cleanup-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/ws-cleanup-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/ws-cleanup-plugin</url>
   </scm>
 
   <repositories>
     <repository>
-      <id>java.net-m2-repository</id>
-      <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/
-      </url>
+      <id>maven.jenkins-ci.org</id>
+      <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
     </repository>
   </repositories>
 
   <distributionManagement>
     <repository>
-      <id>java.net-m2-repository</id>
-      <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/
-      </url>
+      <id>maven.jenkins-ci.org</id>
+      <url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
     </repository>
   </distributionManagement>
 
