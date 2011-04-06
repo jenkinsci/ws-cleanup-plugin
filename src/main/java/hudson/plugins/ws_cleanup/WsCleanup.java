@@ -2,17 +2,19 @@ package hudson.plugins.ws_cleanup;
 
 import hudson.Extension;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.AbstractBuild;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
+import hudson.tasks.Publisher;
 
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.json.JSONObject;
+
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
@@ -40,7 +42,7 @@ public class WsCleanup extends Notifier {
     }
     
     @Extension
-    public static final class DescriptorImpl extends BuildStepDescriptor {
+    public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
         public DescriptorImpl() {
             super(WsCleanup.class);
