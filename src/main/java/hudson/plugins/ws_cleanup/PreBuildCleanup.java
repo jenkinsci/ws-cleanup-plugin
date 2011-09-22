@@ -3,9 +3,8 @@ package hudson.plugins.ws_cleanup;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.BuildListener;
-import hudson.model.Environment;
 import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
 import hudson.model.Descriptor;
 import hudson.tasks.BuildWrapper;
 
@@ -61,8 +60,7 @@ public class PreBuildCleanup extends BuildWrapper {
 		 * This human readable name is used in the configuration screen.
 		 */
 		public String getDisplayName() {
-			// TODO localization
-			return "Delete workspace before build starts";
+			return Messages.PreBuildCleanup_Delete_workspace();
 		}
 
 	}

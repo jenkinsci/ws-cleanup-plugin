@@ -2,8 +2,8 @@ package hudson.plugins.ws_cleanup;
 
 import hudson.Extension;
 import hudson.Launcher;
-import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
@@ -13,9 +13,9 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.json.JSONObject;
-
 import org.kohsuke.stapler.StaplerRequest;
+
+import net.sf.json.JSONObject;
 
 /**
  *
@@ -50,7 +50,7 @@ public class WsCleanup extends Notifier {
 
         @Override
         public String getDisplayName() {
-            return "Delete workspace when build is done";
+            return Messages.WsCleanup_Delete_workspace();
         }
 
         @Override
