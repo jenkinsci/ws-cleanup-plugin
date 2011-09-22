@@ -9,6 +9,7 @@ import hudson.model.Descriptor;
 import hudson.tasks.BuildWrapper;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,11 +17,11 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 public class PreBuildCleanup extends BuildWrapper {
 
-	private final String name;
+	private final List<Pattern> patterns;
 
 	@DataBoundConstructor
-	public PreBuildCleanup(String name) {
-		this.name = name;
+	public PreBuildCleanup(List<Pattern> patterns) {
+		this.patterns = patterns;
 	}
 
 	@Override
@@ -41,7 +42,12 @@ public class PreBuildCleanup extends BuildWrapper {
 		FilePath ws = build.getWorkspace();
 		if (ws != null) {
 			try {
-				ws.deleteContents();
+                if (patterns == null || patterns.isEmpty()) {
+				    ws.deleteContents();
+                } else {
+                    build.getWorkspace().act(new Cleanup(patterns));
+                }
+
 				listener.getLogger().append("done\n\n");
 			} catch (IOException  e) {
 				Logger.getLogger(PreBuildCleanup.class.getName()).log(Level.SEVERE, null, e);
@@ -56,18 +62,14 @@ public class PreBuildCleanup extends BuildWrapper {
 	@Extension
 	public static final class DescriptorImpl extends Descriptor<BuildWrapper> {
 
-		/**
-		 * This human readable name is used in the configuration screen.
-		 */
 		public String getDisplayName() {
 			return Messages.PreBuildCleanup_Delete_workspace();
 		}
 
 	}
 
-	
-	 class NoopEnv extends Environment{ 
-	 }
+	class NoopEnv extends Environment{
+	}
 	 
 
 }
