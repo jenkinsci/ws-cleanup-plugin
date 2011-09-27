@@ -33,6 +33,10 @@ public class WsCleanup extends Notifier {
         this.patterns = patterns;
     }
 
+    public List<Pattern> getPatterns(){
+		return patterns;
+	}
+    
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
 

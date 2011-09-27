@@ -14,7 +14,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.kohsuke.stapler.DataBoundConstructor;
-
+/**
+ * 
+ * @author vjuranek
+ *
+ */
 public class PreBuildCleanup extends BuildWrapper {
 
 	private final List<Pattern> patterns;
@@ -24,6 +28,10 @@ public class PreBuildCleanup extends BuildWrapper {
 		this.patterns = patterns;
 	}
 
+	public List<Pattern> getPatterns(){
+		return patterns;
+	}
+	
 	@Override
 	public DescriptorImpl getDescriptor() {
 		return (DescriptorImpl) super.getDescriptor();
