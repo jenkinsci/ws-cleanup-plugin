@@ -21,10 +21,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 -->
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
   <f:entry title="${%Patterns for files to be deleted}" help="/plugin/ws-cleanup/help/patterns.html">
-      <f:repeatable var="pattern" items="${it.patterns}" name="patterns">
-        <f:textbox value="${pattern}" name="pattern"/>
+      <f:repeatable field="patterns">
+        <st:include page="config.jelly" class="hudson.plugins.ws_cleanup.Pattern"/>       
         <div align="right">
           <f:repeatableDeleteButton />
         </div>
