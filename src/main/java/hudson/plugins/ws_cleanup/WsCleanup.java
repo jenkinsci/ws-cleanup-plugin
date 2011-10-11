@@ -59,7 +59,7 @@ public class WsCleanup extends Notifier {
     	return BuildStepMonitor.STEP;
     }
     
-    @Extension
+    @Extension(ordinal=-99999)
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
         public DescriptorImpl() {
