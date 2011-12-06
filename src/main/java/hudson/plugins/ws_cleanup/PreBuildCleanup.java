@@ -22,15 +22,21 @@ import org.kohsuke.stapler.DataBoundConstructor;
 public class PreBuildCleanup extends BuildWrapper {
 
 	private final List<Pattern> patterns;
+	private final boolean deleteDirs;
 
 	@DataBoundConstructor
-	public PreBuildCleanup(List<Pattern> patterns) {
+	public PreBuildCleanup(List<Pattern> patterns, boolean deleteDirs) {
 		this.patterns = patterns;
+		this.deleteDirs = deleteDirs;
 	}
 
 	public List<Pattern> getPatterns(){
 		return patterns;
 	}
+	
+	public boolean getDeleteDirs(){
+    	return deleteDirs;
+    }
 	
 	@Override
 	public DescriptorImpl getDescriptor() {
@@ -55,7 +61,7 @@ public class PreBuildCleanup extends BuildWrapper {
                 if (patterns == null || patterns.isEmpty()) {
 				    ws.deleteContents();
                 } else {
-                    build.getWorkspace().act(new Cleanup(patterns));
+                    build.getWorkspace().act(new Cleanup(patterns,deleteDirs));
                 }
 
 				listener.getLogger().append("done\n\n");

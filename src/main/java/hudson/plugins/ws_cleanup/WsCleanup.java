@@ -27,16 +27,22 @@ import net.sf.json.JSONObject;
 public class WsCleanup extends Notifier {
 
     private final List<Pattern> patterns;
+    private final boolean deleteDirs;
 
     @DataBoundConstructor
     // FIXME can't get repeteable to work with a List<String>
-    public WsCleanup(List<Pattern> patterns) {
+    public WsCleanup(List<Pattern> patterns, boolean deleteDirs) {
         this.patterns = patterns;
+        this.deleteDirs = deleteDirs;
     }
 
     public List<Pattern> getPatterns(){
 		return patterns;
 	}
+    
+    public boolean getDeleteDirs(){
+    	return deleteDirs;
+    }
     
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
@@ -48,7 +54,7 @@ public class WsCleanup extends Notifier {
             if (patterns == null || patterns.isEmpty()) {
                 workspace.deleteRecursive();
             } else {
-                workspace.act(new Cleanup(patterns));
+                workspace.act(new Cleanup(patterns,deleteDirs));
             }
             listener.getLogger().append("done\n\n");
         } catch (InterruptedException ex) {
