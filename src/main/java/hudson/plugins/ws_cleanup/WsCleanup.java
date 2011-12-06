@@ -1,6 +1,7 @@
 package hudson.plugins.ws_cleanup;
 
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
@@ -39,13 +40,17 @@ public class WsCleanup extends Notifier {
     
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+        FilePath workspace = build.getWorkspace();
+        if (workspace == null || !workspace.exists()) {
+          return true;
+        }
 
         listener.getLogger().append("\nDeleting project workspace... ");
         try {
             if (patterns == null || patterns.isEmpty()) {
-                build.getWorkspace().deleteRecursive();
+                workspace.deleteRecursive();
             } else {
-                build.getWorkspace().act(new Cleanup(patterns));
+                workspace.act(new Cleanup(patterns));
             }
             listener.getLogger().append("done\n\n");
         } catch (InterruptedException ex) {
