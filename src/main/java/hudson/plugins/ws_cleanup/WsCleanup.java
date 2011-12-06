@@ -40,13 +40,11 @@ public class WsCleanup extends Notifier {
     
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        FilePath workspace = build.getWorkspace();
-        if (workspace == null || !workspace.exists()) {
-          return true;
-        }
-
         listener.getLogger().append("\nDeleting project workspace... ");
+        FilePath workspace = build.getWorkspace();
         try {
+        	if (workspace == null || !workspace.exists()) 
+                return true;
             if (patterns == null || patterns.isEmpty()) {
                 workspace.deleteRecursive();
             } else {

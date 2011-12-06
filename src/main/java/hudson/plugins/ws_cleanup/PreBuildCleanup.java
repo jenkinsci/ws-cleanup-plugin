@@ -50,9 +50,9 @@ public class PreBuildCleanup extends BuildWrapper {
 		FilePath ws = build.getWorkspace();
 		if (ws != null) {
 			try {
-                if (!ws.exists()) {
-                  return;
-                } else if (patterns == null || patterns.isEmpty()) {
+				if (ws == null || !ws.exists())
+		            return;
+                if (patterns == null || patterns.isEmpty()) {
 				    ws.deleteContents();
                 } else {
                     build.getWorkspace().act(new Cleanup(patterns));
