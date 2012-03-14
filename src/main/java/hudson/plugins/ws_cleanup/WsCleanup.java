@@ -68,7 +68,12 @@ public class WsCleanup extends Notifier {
     	return BuildStepMonitor.STEP;
     }
     
-    @Extension(ordinal=-99999)
+    @Override
+    public boolean needsToRunAfterFinalized() {
+        return true;
+    }
+    
+    @Extension(ordinal=-9999)
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
         public DescriptorImpl() {

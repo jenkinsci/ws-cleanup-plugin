@@ -75,7 +75,7 @@ public class PreBuildCleanup extends BuildWrapper {
 		}
 	}
 
-	@Extension(ordinal=99999)
+	@Extension(ordinal=9999)
 	public static final class DescriptorImpl extends Descriptor<BuildWrapper> {
 
 		public String getDisplayName() {
