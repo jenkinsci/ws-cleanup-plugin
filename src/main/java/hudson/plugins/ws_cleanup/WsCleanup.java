@@ -5,6 +5,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Result;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
@@ -28,12 +29,14 @@ public class WsCleanup extends Notifier {
 
     private final List<Pattern> patterns;
     private final boolean deleteDirs;
+    private final boolean skipWhenFailed;
 
     @DataBoundConstructor
     // FIXME can't get repeteable to work with a List<String>
-    public WsCleanup(List<Pattern> patterns, boolean deleteDirs) {
+    public WsCleanup(List<Pattern> patterns, boolean deleteDirs, final boolean skipWhenFailed) {
         this.patterns = patterns;
         this.deleteDirs = deleteDirs;
+        this.skipWhenFailed = skipWhenFailed;
     }
 
     public List<Pattern> getPatterns(){
@@ -44,13 +47,23 @@ public class WsCleanup extends Notifier {
     	return deleteDirs;
     }
     
-    @Override
+    
+    
+    public boolean getSkipWhenFailed() {
+		return skipWhenFailed;
+	}
+
+	@Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         listener.getLogger().append("\nDeleting project workspace... ");
         FilePath workspace = build.getWorkspace();
         try {
         	if (workspace == null || !workspace.exists()) 
                 return true;
+        	if ( build.getResult().isWorseOrEqualTo(Result.FAILURE)) {
+        		listener.getLogger().append("skipped for failed build");
+        		return true;
+        	}
             if (patterns == null || patterns.isEmpty()) {
                 workspace.deleteRecursive();
             } else {
