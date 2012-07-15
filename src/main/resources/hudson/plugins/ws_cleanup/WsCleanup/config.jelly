@@ -26,5 +26,8 @@
 		<f:entry title="${%Apply pattern also on directories}">
 			<f:checkbox field="deleteDirs" checked="${it.deleteDirs}" />
 		</f:entry>
+		<f:entry title="${%Skip when build failed}">
+			<f:checkbox field="skipWhenFailed" checked="${it.skipWhenFailed}" />
+		</f:entry>
 	</f:advanced>
 </j:jelly>
