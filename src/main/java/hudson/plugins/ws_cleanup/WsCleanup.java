@@ -60,8 +60,8 @@ public class WsCleanup extends Notifier {
         try {
         	if (workspace == null || !workspace.exists()) 
                 return true;
-        	if ( build.getResult().isWorseOrEqualTo(Result.FAILURE)) {
-        		listener.getLogger().append("skipped for failed build");
+        	if ( this.skipWhenFailed && build.getResult().isWorseOrEqualTo(Result.FAILURE)) {
+        		listener.getLogger().append("skipped for failed build\n\n");
         		return true;
         	}
             if (patterns == null || patterns.isEmpty()) {
