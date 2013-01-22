@@ -52,7 +52,7 @@ public class PreBuildCleanup extends BuildWrapper {
 	@Override
 	public void preCheckout(AbstractBuild build, Launcher launcher,
 			BuildListener listener) {
-		listener.getLogger().append("\nDeleting project workspace... ");
+		listener.getLogger().append("\nDeleting project workspace... \n");
 		FilePath ws = build.getWorkspace();
 		if (ws != null) {
 			try {
