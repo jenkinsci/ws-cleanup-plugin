@@ -17,13 +17,15 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
 	private final List<Pattern> patterns;
     private final boolean deleteDirs;
     private final boolean skipWhenFailed;
+    private final boolean notFailBuild;
 	
 	public WsCleanupMatrixAggregator(MatrixBuild build, Launcher launcher, BuildListener listener, List<Pattern> patterns, 
-			boolean deleteDirs, boolean skipWhenFailed) {
+			boolean deleteDirs, boolean skipWhenFailed, boolean notFailBuid) {
 		super(build, launcher, listener);
 		this.patterns = patterns;
 		this.deleteDirs = deleteDirs;
 		this.skipWhenFailed = skipWhenFailed;
+		this.notFailBuild = notFailBuid;
     }
 	
 	public boolean endBuild() throws InterruptedException, IOException {
@@ -31,7 +33,7 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
     }
 	
 	private boolean doWorkspaceCleanup() throws IOException, InterruptedException {
-		listener.getLogger().append("\nDeleting matrix project workspace... ");
+		listener.getLogger().append("\nDeleting matrix project workspace... \n");
 		
 		//TODO do we want to keep keep child workpsaces if run on the same machine? Make it optional?
 		/*
@@ -74,8 +76,13 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
                 workspace.act(new Cleanup(patterns,deleteDirs));
             }
             listener.getLogger().append("done\n\n");
-        } catch (InterruptedException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(WsCleanupMatrixAggregator.class.getName()).log(Level.SEVERE, null, ex);
+            if(notFailBuild) {
+            	listener.getLogger().append("Cannot delete workspace: " + ex.getCause() + "\n");
+            	listener.getLogger().append("Option not to fail the build is turned on, so let's continue\n");
+            	return true;
+            }
             return false;
         }
         return true;

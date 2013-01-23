@@ -33,14 +33,16 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
     private final List<Pattern> patterns;
     private final boolean deleteDirs;
     private final boolean skipWhenFailed;
+    private final boolean notFailBuild;
     private final boolean cleanupMatrixParent;
 
     @DataBoundConstructor
     // FIXME can't get repeteable to work with a List<String>
-    public WsCleanup(List<Pattern> patterns, boolean deleteDirs, final boolean skipWhenFailed, final boolean cleanupMatrixParent) {
+    public WsCleanup(List<Pattern> patterns, boolean deleteDirs, final boolean skipWhenFailed, final boolean notFailBuild, final boolean cleanupMatrixParent) {
         this.patterns = patterns;
         this.deleteDirs = deleteDirs;
         this.skipWhenFailed = skipWhenFailed;
+        this.notFailBuild = notFailBuild;
         this.cleanupMatrixParent = cleanupMatrixParent;
     }
 
@@ -56,13 +58,17 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
 		return skipWhenFailed;
 	}
 
+    public boolean getNotFailBuild() {
+    	return notFailBuild;
+    }
+    
     public boolean getCleanupMatrixParent() {
     	return cleanupMatrixParent;
     }
         
 	@Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        listener.getLogger().append("\nDeleting project workspace... ");
+        listener.getLogger().append("\nDeleting project workspace... \n");
         FilePath workspace = build.getWorkspace();
         try {
         	if (workspace == null || !workspace.exists()) 
@@ -77,8 +83,13 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
                 workspace.act(new Cleanup(patterns,deleteDirs));
             }
             listener.getLogger().append("done\n\n");
-        } catch (InterruptedException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(WsCleanup.class.getName()).log(Level.SEVERE, null, ex);
+            if(notFailBuild) {
+            	listener.getLogger().append("Cannot delete workspace: " + ex.getCause() + "\n");
+            	listener.getLogger().append("Option not to fail the build is turned on, so let's continue\n");
+            	return true;
+            }
             return false;
         }
         return true;
@@ -86,7 +97,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
 
 	public MatrixAggregator createAggregator(MatrixBuild build, Launcher launcher, BuildListener listener) {
 		if(cleanupMatrixParent)
-			return new WsCleanupMatrixAggregator(build, launcher, listener, patterns, deleteDirs, skipWhenFailed);
+			return new WsCleanupMatrixAggregator(build, launcher, listener, patterns, deleteDirs, skipWhenFailed, notFailBuild);
 		return null;
 	}
 	
