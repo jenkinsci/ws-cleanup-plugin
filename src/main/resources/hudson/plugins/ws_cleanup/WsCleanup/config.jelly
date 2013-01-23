@@ -29,5 +29,10 @@
 		<f:entry title="${%Skip when build failed}">
 			<f:checkbox field="skipWhenFailed" checked="${it.skipWhenFailed}" />
 		</f:entry>
+		<!--TODO show only for matrix jobs  j:when test="" -->
+			<f:entry title="${%Cleanup workspace of matrix parent}" help="/plugin/ws-cleanup/help/cleanupMatrixParent.html">
+				<f:checkbox field="cleanupMatrixParent" checked="${it.cleanupMatrixParent}" />
+			</f:entry>
+		<!-- /j:when -->
 	</f:advanced>
 </j:jelly>

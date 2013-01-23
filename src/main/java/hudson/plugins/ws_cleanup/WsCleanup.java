@@ -3,9 +3,12 @@ package hudson.plugins.ws_cleanup;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
+import hudson.matrix.MatrixAggregatable;
+import hudson.matrix.MatrixAggregator;
+import hudson.matrix.MatrixBuild;
 import hudson.model.BuildListener;
 import hudson.model.Result;
+import hudson.model.AbstractBuild;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
@@ -16,27 +19,29 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.json.JSONObject;
+
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
-
-import net.sf.json.JSONObject;
 
 /**
  *
  * @author dvrzalik
  */
-public class WsCleanup extends Notifier {
+public class WsCleanup extends Notifier implements MatrixAggregatable {
 
     private final List<Pattern> patterns;
     private final boolean deleteDirs;
     private final boolean skipWhenFailed;
+    private final boolean cleanupMatrixParent;
 
     @DataBoundConstructor
     // FIXME can't get repeteable to work with a List<String>
-    public WsCleanup(List<Pattern> patterns, boolean deleteDirs, final boolean skipWhenFailed) {
+    public WsCleanup(List<Pattern> patterns, boolean deleteDirs, final boolean skipWhenFailed, final boolean cleanupMatrixParent) {
         this.patterns = patterns;
         this.deleteDirs = deleteDirs;
         this.skipWhenFailed = skipWhenFailed;
+        this.cleanupMatrixParent = cleanupMatrixParent;
     }
 
     public List<Pattern> getPatterns(){
@@ -47,12 +52,14 @@ public class WsCleanup extends Notifier {
     	return deleteDirs;
     }
     
-    
-    
     public boolean getSkipWhenFailed() {
 		return skipWhenFailed;
 	}
 
+    public boolean getCleanupMatrixParent() {
+    	return cleanupMatrixParent;
+    }
+        
 	@Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         listener.getLogger().append("\nDeleting project workspace... ");
@@ -77,6 +84,12 @@ public class WsCleanup extends Notifier {
         return true;
     }
 
+	public MatrixAggregator createAggregator(MatrixBuild build, Launcher launcher, BuildListener listener) {
+		if(cleanupMatrixParent)
+			return new WsCleanupMatrixAggregator(build, launcher, listener, patterns, deleteDirs, skipWhenFailed);
+		return null;
+	}
+	
     public BuildStepMonitor getRequiredMonitorService(){
     	return BuildStepMonitor.STEP;
     }
