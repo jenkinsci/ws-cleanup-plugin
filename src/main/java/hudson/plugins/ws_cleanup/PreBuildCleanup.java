@@ -1,5 +1,6 @@
 package hudson.plugins.ws_cleanup;
 
+import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -51,7 +52,7 @@ public class PreBuildCleanup extends BuildWrapper {
 
 	@Override
 	public void preCheckout(AbstractBuild build, Launcher launcher,
-			BuildListener listener) {
+			BuildListener listener) throws AbortException {
 		listener.getLogger().append("\nDeleting project workspace... \n");
 		FilePath ws = build.getWorkspace();
 		if (ws != null) {
@@ -59,15 +60,17 @@ public class PreBuildCleanup extends BuildWrapper {
 				if (ws == null || !ws.exists())
 		            return;
                 if (patterns == null || patterns.isEmpty()) {
-				    ws.deleteContents();
+				    ws.deleteRecursive();
                 } else {
                     build.getWorkspace().act(new Cleanup(patterns,deleteDirs));
                 }
 
 				listener.getLogger().append("done\n\n");
 			} catch (IOException  e) {
+				listener.getLogger().append("Cannot delete workspace: " + e.getCause() + "\n");
 				Logger.getLogger(PreBuildCleanup.class.getName()).log(Level.SEVERE, null, e);
 				e.printStackTrace();
+				throw new AbortException("Cannot delete workspace: " + e.getCause());
 			}catch(InterruptedException e){
 				Logger.getLogger(PreBuildCleanup.class.getName()).log(Level.SEVERE, null, e);
 				e.printStackTrace();
