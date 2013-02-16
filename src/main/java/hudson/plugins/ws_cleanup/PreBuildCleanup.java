@@ -1,5 +1,6 @@
 package hudson.plugins.ws_cleanup;
 
+import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -35,8 +36,8 @@ public class PreBuildCleanup extends BuildWrapper {
 	}
 	
 	public boolean getDeleteDirs(){
-    	return deleteDirs;
-    }
+		return deleteDirs;
+	}
 	
 	@Override
 	public DescriptorImpl getDescriptor() {
@@ -51,24 +52,39 @@ public class PreBuildCleanup extends BuildWrapper {
 
 	@Override
 	public void preCheckout(AbstractBuild build, Launcher launcher,
-			BuildListener listener) {
+			BuildListener listener) throws AbortException {
 		listener.getLogger().append("\nDeleting project workspace... \n");
 		FilePath ws = build.getWorkspace();
 		if (ws != null) {
 			try {
-				if (ws == null || !ws.exists())
-		            return;
-                if (patterns == null || patterns.isEmpty()) {
-				    ws.deleteContents();
-                } else {
-                    build.getWorkspace().act(new Cleanup(patterns,deleteDirs));
-                }
+				// Retry the operation a couple of times,
+				int retry = 3;
+				while (true) {
+					try {
+						if (ws == null || !ws.exists())
+							return;
+						if (patterns == null || patterns.isEmpty()) {
+							ws.deleteRecursive();
+						} else {
+							build.getWorkspace().act(new Cleanup(patterns,deleteDirs));
+						}
 
-				listener.getLogger().append("done\n\n");
-			} catch (IOException  e) {
-				Logger.getLogger(PreBuildCleanup.class.getName()).log(Level.SEVERE, null, e);
-				e.printStackTrace();
-			}catch(InterruptedException e){
+						listener.getLogger().append("done\n\n");
+						break;
+					} catch (IOException e) {
+						retry -= 1;
+						if (retry > 0) {
+							// Swallow the I/O exception and retry in a few seconds.
+							Thread.sleep(3000);
+						} else {
+							listener.getLogger().append("Cannot delete workspace: " + e.getCause() + "\n");
+							Logger.getLogger(PreBuildCleanup.class.getName()).log(Level.SEVERE, null, e);
+							e.printStackTrace();
+							throw new AbortException("Cannot delete workspace: " + e.getCause());
+						}
+					}
+				}
+			} catch(InterruptedException e) {
 				Logger.getLogger(PreBuildCleanup.class.getName()).log(Level.SEVERE, null, e);
 				e.printStackTrace();
 			}
