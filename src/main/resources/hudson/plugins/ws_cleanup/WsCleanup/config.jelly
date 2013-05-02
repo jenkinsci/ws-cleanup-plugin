@@ -26,9 +26,13 @@
 		<f:entry title="${%Apply pattern also on directories}">
 			<f:checkbox field="deleteDirs" checked="${it.deleteDirs}" />
 		</f:entry>
-		<f:entry title="${%Skip when build failed}">
-			<f:checkbox field="skipWhenFailed" checked="${it.skipWhenFailed}" />
-		</f:entry>
+		<f:entry title="${%Clean when status is}">
+            <f:checkbox field="cleanWhenSuccess" checked="${it.cleanWhenSuccess}" title="${%Success}"/>
+            <f:checkbox field="cleanWhenUnstable" checked="${it.cleanWhenUnstable}" title="${%Unstable}"/>
+            <f:checkbox field="cleanWhenFailure" checked="${it.cleanWhenFailure}" title="${%Failure}"/>
+            <f:checkbox field="cleanWhenNotBuilt" checked="${it.cleanWhenNotBuilt}" title="${%Not Built}"/>
+            <f:checkbox field="cleanWhenAborted" checked="${it.cleanWhenAborted}" title="${%Aborted}"/>
+        </f:entry>
 		<f:entry title="${%Don't fail the build if cleanup fails}" help="/plugin/ws-cleanup/help/notFailBuild.html">
 			<f:checkbox field="notFailBuild" checked="${it.notFailBuild}" />
 		</f:entry>
