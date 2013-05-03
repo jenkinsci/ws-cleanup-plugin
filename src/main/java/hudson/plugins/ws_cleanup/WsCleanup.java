@@ -32,18 +32,29 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
 
     private final List<Pattern> patterns;
     private final boolean deleteDirs;
-    private final boolean skipWhenFailed;
+
+    private final boolean cleanWhenSuccess;
+    private final boolean cleanWhenUnstable;
+    private final boolean cleanWhenFailure;
+    private final boolean cleanWhenNotBuilt;
+    private final boolean cleanWhenAborted;
+
     private final boolean notFailBuild;
     private final boolean cleanupMatrixParent;
 
     @DataBoundConstructor
     // FIXME can't get repeteable to work with a List<String>
-    public WsCleanup(List<Pattern> patterns, boolean deleteDirs, final boolean skipWhenFailed, final boolean notFailBuild, final boolean cleanupMatrixParent) {
+    public WsCleanup(List<Pattern> patterns, boolean deleteDirs, final boolean cleanWhenSuccess, final boolean cleanWhenUnstable, final boolean cleanWhenFailure,
+                     final boolean cleanWhenNotBuilt, final boolean cleanWhenAborted, final boolean notFailBuild, final boolean cleanupMatrixParent) {
         this.patterns = patterns;
         this.deleteDirs = deleteDirs;
-        this.skipWhenFailed = skipWhenFailed;
         this.notFailBuild = notFailBuild;
         this.cleanupMatrixParent = cleanupMatrixParent;
+        this.cleanWhenSuccess = cleanWhenSuccess;
+        this.cleanWhenUnstable = cleanWhenUnstable;
+        this.cleanWhenFailure = cleanWhenFailure;
+        this.cleanWhenNotBuilt = cleanWhenNotBuilt;
+        this.cleanWhenAborted = cleanWhenAborted;
     }
 
     public List<Pattern> getPatterns(){
@@ -53,10 +64,6 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
     public boolean getDeleteDirs(){
     	return deleteDirs;
     }
-    
-    public boolean getSkipWhenFailed() {
-		return skipWhenFailed;
-	}
 
     public boolean getNotFailBuild() {
     	return notFailBuild;
@@ -64,6 +71,21 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
     
     public boolean getCleanupMatrixParent() {
     	return cleanupMatrixParent;
+    }
+
+    private boolean shouldCleanBuildBasedOnState(Result result) {
+        if(result.equals(Result.SUCCESS))
+            return this.cleanWhenSuccess;
+        if(result.equals(Result.UNSTABLE))
+            return this.cleanWhenUnstable;
+        if(result.equals(Result.FAILURE))
+            return this.cleanWhenFailure;
+        if(result.equals(Result.NOT_BUILT))
+            return this.cleanWhenNotBuilt;
+        if(result.equals(Result.ABORTED))
+            return this.cleanWhenAborted;
+
+        return true;
     }
         
 	@Override
@@ -73,8 +95,8 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
         try {
         	if (workspace == null || !workspace.exists()) 
                 return true;
-        	if ( this.skipWhenFailed && build.getResult().isWorseOrEqualTo(Result.FAILURE)) {
-        		listener.getLogger().append("skipped for failed build\n\n");
+        	if(!shouldCleanBuildBasedOnState(build.getResult())) {
+        		listener.getLogger().append("Skipped based on build state " + build.getResult() + "\n\n");
         		return true;
         	}
             if (patterns == null || patterns.isEmpty()) {
@@ -97,7 +119,8 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
 
 	public MatrixAggregator createAggregator(MatrixBuild build, Launcher launcher, BuildListener listener) {
 		if(cleanupMatrixParent)
-			return new WsCleanupMatrixAggregator(build, launcher, listener, patterns, deleteDirs, skipWhenFailed, notFailBuild);
+			return new WsCleanupMatrixAggregator(build, launcher, listener, patterns, deleteDirs, cleanWhenSuccess, cleanWhenUnstable, cleanWhenFailure,
+                cleanWhenNotBuilt, cleanWhenAborted, notFailBuild);
 		return null;
 	}
 	

@@ -16,22 +16,47 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
 	
 	private final List<Pattern> patterns;
     private final boolean deleteDirs;
-    private final boolean skipWhenFailed;
     private final boolean notFailBuild;
+
+    private final boolean cleanWhenSuccess;
+    private final boolean cleanWhenUnstable;
+    private final boolean cleanWhenFailure;
+    private final boolean cleanWhenNotBuilt;
+    private final boolean cleanWhenAborted;
 	
 	public WsCleanupMatrixAggregator(MatrixBuild build, Launcher launcher, BuildListener listener, List<Pattern> patterns, 
-			boolean deleteDirs, boolean skipWhenFailed, boolean notFailBuid) {
+			boolean deleteDirs, final boolean cleanWhenSuccess, final boolean cleanWhenUnstable, final boolean cleanWhenFailure,
+            final boolean cleanWhenNotBuilt, final boolean cleanWhenAborted, final boolean notFailBuild) {
 		super(build, launcher, listener);
 		this.patterns = patterns;
 		this.deleteDirs = deleteDirs;
-		this.skipWhenFailed = skipWhenFailed;
-		this.notFailBuild = notFailBuid;
+        this.cleanWhenSuccess = cleanWhenSuccess;
+        this.cleanWhenUnstable = cleanWhenUnstable;
+        this.cleanWhenFailure = cleanWhenFailure;
+        this.cleanWhenNotBuilt = cleanWhenNotBuilt;
+        this.cleanWhenAborted = cleanWhenAborted;
+		this.notFailBuild = notFailBuild;
     }
 	
 	public boolean endBuild() throws InterruptedException, IOException {
 		return doWorkspaceCleanup();
     }
-	
+
+    private boolean shouldCleanBuildBasedOnState(Result result) {
+        if(result.equals(Result.SUCCESS))
+            return this.cleanWhenSuccess;
+        if(result.equals(Result.UNSTABLE))
+            return this.cleanWhenUnstable;
+        if(result.equals(Result.FAILURE))
+            return this.cleanWhenFailure;
+        if(result.equals(Result.NOT_BUILT))
+            return this.cleanWhenNotBuilt;
+        if(result.equals(Result.ABORTED))
+            return this.cleanWhenAborted;
+
+        return true;
+    }
+
 	private boolean doWorkspaceCleanup() throws IOException, InterruptedException {
 		listener.getLogger().append("\nDeleting matrix project workspace... \n");
 		
@@ -66,10 +91,10 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
         try {
         	if (workspace == null || !workspace.exists()) 
                 return true;
-        	if ( this.skipWhenFailed && build.getResult().isWorseOrEqualTo(Result.FAILURE)) {
-        		listener.getLogger().append("skipped for failed build\n\n");
-        		return true;
-        	}
+            if(!shouldCleanBuildBasedOnState(build.getResult())) {
+                listener.getLogger().append("Skipped based on build state " + build.getResult() + "\n\n");
+                return true;
+            }
             if (patterns == null || patterns.isEmpty()) {
                 workspace.deleteRecursive();
             } else {
