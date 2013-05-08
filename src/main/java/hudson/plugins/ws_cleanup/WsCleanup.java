@@ -69,7 +69,27 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
     	return notFailBuild;
     }
     
-    public boolean getCleanupMatrixParent() {
+    public boolean isCleanWhenSuccess() {
+		return cleanWhenSuccess;
+	}
+
+	public boolean isCleanWhenUnstable() {
+		return cleanWhenUnstable;
+	}
+
+	public boolean isCleanWhenFailure() {
+		return cleanWhenFailure;
+	}
+
+	public boolean isCleanWhenNotBuilt() {
+		return cleanWhenNotBuilt;
+	}
+
+	public boolean isCleanWhenAborted() {
+		return cleanWhenAborted;
+	}
+
+	public boolean getCleanupMatrixParent() {
     	return cleanupMatrixParent;
     }
 
