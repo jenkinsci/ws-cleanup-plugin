@@ -9,6 +9,7 @@ import hudson.matrix.MatrixBuild;
 import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
+import hudson.plugins.ws_cleanup.Pattern.PatternType;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
@@ -33,11 +34,13 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
     private final List<Pattern> patterns;
     private final boolean deleteDirs;
 
-    private final boolean cleanWhenSuccess;
-    private final boolean cleanWhenUnstable;
-    private final boolean cleanWhenFailure;
-    private final boolean cleanWhenNotBuilt;
-    private final boolean cleanWhenAborted;
+    @Deprecated
+    private boolean skipWhenFailed; // keep it for backward compatibility
+    private boolean cleanWhenSuccess;
+    private boolean cleanWhenUnstable;
+    private boolean cleanWhenFailure;
+    private boolean cleanWhenNotBuilt;
+    private boolean cleanWhenAborted;
 
     private final boolean notFailBuild;
     private final boolean cleanupMatrixParent;
@@ -57,6 +60,35 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
         this.cleanWhenAborted = cleanWhenAborted;
     }
 
+    public Object readResolve(){
+        // backward compatibility issues, see JENKINS-17930 and JENKINS-17940
+        // if workspace cleanup is turn on, but for all results it's turned off, it doesn't make sense,
+        // so assuming we hit backward compatibility issue and set all to true, so ws gets cleanup after every build
+        if(cleanWhenSuccess == false && 
+           cleanWhenUnstable == false && 
+           cleanWhenFailure == false && 
+           cleanWhenNotBuilt == false &&
+           cleanWhenAborted == false
+        ) {
+            cleanWhenSuccess = true;
+            cleanWhenUnstable = true;
+            cleanWhenFailure = true;
+            cleanWhenNotBuilt = true;
+            cleanWhenAborted = true;
+        }
+        
+        if(skipWhenFailed) { // convert deprecated option to choice per result
+            skipWhenFailed = false; // set to false, so that we will skip this in the future 
+            cleanWhenSuccess = true;
+            cleanWhenUnstable = true;
+            cleanWhenFailure = false;
+            cleanWhenNotBuilt = false;
+            cleanWhenAborted = false;
+        }
+        
+        return this;
+    }
+    
     public List<Pattern> getPatterns(){
 		return patterns;
 	}
