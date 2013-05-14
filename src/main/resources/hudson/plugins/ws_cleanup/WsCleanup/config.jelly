@@ -27,11 +27,11 @@
 			<f:checkbox field="deleteDirs" checked="${it.deleteDirs}" />
 		</f:entry>
 		<f:entry title="${%Clean when status is}">
-            <f:checkbox field="cleanWhenSuccess" checked="${it.cleanWhenSuccess}" title="${%Success}"/>
-            <f:checkbox field="cleanWhenUnstable" checked="${it.cleanWhenUnstable}" title="${%Unstable}"/>
-            <f:checkbox field="cleanWhenFailure" checked="${it.cleanWhenFailure}" title="${%Failure}"/>
-            <f:checkbox field="cleanWhenNotBuilt" checked="${it.cleanWhenNotBuilt}" title="${%Not Built}"/>
-            <f:checkbox field="cleanWhenAborted" checked="${it.cleanWhenAborted}" title="${%Aborted}"/>
+            <f:checkbox field="cleanWhenSuccess" checked="${it.cleanWhenSuccess}" default="true" title="${%Success}"/>
+            <f:checkbox field="cleanWhenUnstable" checked="${it.cleanWhenUnstable}" default="true" title="${%Unstable}"/>
+            <f:checkbox field="cleanWhenFailure" checked="${it.cleanWhenFailure}" default="true" title="${%Failure}"/>
+            <f:checkbox field="cleanWhenNotBuilt" checked="${it.cleanWhenNotBuilt}" default="true" title="${%Not Built}"/>
+            <f:checkbox field="cleanWhenAborted" checked="${it.cleanWhenAborted}" default="true" title="${%Aborted}"/>
         </f:entry>
 		<f:entry title="${%Don't fail the build if cleanup fails}" help="/plugin/ws-cleanup/help/notFailBuild.html">
 			<f:checkbox field="notFailBuild" checked="${it.notFailBuild}" />
