@@ -176,7 +176,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
 	}
 	
     public BuildStepMonitor getRequiredMonitorService(){
-    	return BuildStepMonitor.STEP;
+    	return BuildStepMonitor.NONE;
     }
     
     @Override
