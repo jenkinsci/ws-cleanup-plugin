@@ -26,5 +26,8 @@
 		<f:entry title="${%Apply pattern also on directories}">
 			<f:checkbox field="deleteDirs" checked="${it.deleteDirs}" />
 		</f:entry>
+		<f:entry title="${%Check parameter}" help="/plugin/ws-cleanup/help/cleanupParameter.html">
+			<f:textbox field="cleanupParameter" />
+		</f:entry>
 	</f:advanced>
 </j:jelly>
