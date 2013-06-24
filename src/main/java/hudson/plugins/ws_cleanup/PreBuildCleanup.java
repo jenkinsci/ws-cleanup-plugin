@@ -8,6 +8,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.Descriptor;
 import hudson.tasks.BuildWrapper;
+import hudson.EnvVars;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,11 +25,13 @@ public class PreBuildCleanup extends BuildWrapper {
 
 	private final List<Pattern> patterns;
 	private final boolean deleteDirs;
+	private final String cleanupParameter;
 
 	@DataBoundConstructor
-	public PreBuildCleanup(List<Pattern> patterns, boolean deleteDirs) {
+	public PreBuildCleanup(List<Pattern> patterns, boolean deleteDirs, String cleanupParameter) {
 		this.patterns = patterns;
 		this.deleteDirs = deleteDirs;
+		this.cleanupParameter = cleanupParameter;
 	}
 
 	public List<Pattern> getPatterns(){
@@ -37,6 +40,10 @@ public class PreBuildCleanup extends BuildWrapper {
 	
 	public boolean getDeleteDirs(){
 		return deleteDirs;
+	}
+
+	public String getCleanupParameter() {
+		return this.cleanupParameter;
 	}
 	
 	@Override
@@ -53,7 +60,17 @@ public class PreBuildCleanup extends BuildWrapper {
 	@Override
 	public void preCheckout(AbstractBuild build, Launcher launcher,
 			BuildListener listener) throws AbortException {
-		listener.getLogger().append("\nDeleting project workspace... \n");
+
+		// Check if a cleanupParameter has been setup and skip cleaning workspace if set to false
+		if (!this.cleanupParameter.isEmpty()) {
+			String parameter = (String)build.getBuildVariables().get(this.cleanupParameter);
+			if (parameter.toLowerCase().contains("false")) {
+				listener.getLogger().append("\nSkip deletion of workspace, because cleanup parameter was set to false");
+				return;
+			}
+		}
+
+		listener.getLogger().append("\nDeleting project workspace... ");
 		FilePath ws = build.getWorkspace();
 		if (ws != null) {
 			try {
