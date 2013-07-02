@@ -62,10 +62,10 @@ public class PreBuildCleanup extends BuildWrapper {
 			BuildListener listener) throws AbortException {
 
 		// Check if a cleanupParameter has been setup and skip cleaning workspace if set to false
-		if (!this.cleanupParameter.isEmpty()) {
-			String parameter = (String)build.getBuildVariables().get(this.cleanupParameter);
-			if (parameter.toLowerCase().contains("false")) {
-				listener.getLogger().append("\nSkip deletion of workspace, because cleanup parameter was set to false");
+		if (cleanupParameter != null && !cleanupParameter.isEmpty()) {
+			Boolean doCleanup = new Boolean((String)build.getBuildVariables().get(this.cleanupParameter));
+			if (!doCleanup) {
+				listener.getLogger().append("\nSkip deletion of workspace, because cleanup parameter was set to false\n");
 				return;
 			}
 		}
