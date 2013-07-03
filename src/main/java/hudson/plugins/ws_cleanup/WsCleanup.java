@@ -6,6 +6,7 @@ import hudson.Launcher;
 import hudson.matrix.MatrixAggregatable;
 import hudson.matrix.MatrixAggregator;
 import hudson.matrix.MatrixBuild;
+import hudson.matrix.MatrixProject;
 import hudson.model.BuildListener;
 import hudson.model.Result;
 import hudson.model.AbstractBuild;
@@ -182,6 +183,11 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
     @Override
     public boolean needsToRunAfterFinalized() {
         return true;
+    }
+    
+    //TODO remove if https://github.com/jenkinsci/jenkins/pull/834 is accepted
+    public boolean isMatrixProject(Object o) {
+        return o instanceof MatrixProject;
     }
     
     @Extension(ordinal=-9999)

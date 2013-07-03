@@ -36,10 +36,10 @@
 		<f:entry title="${%Don't fail the build if cleanup fails}" help="/plugin/ws-cleanup/help/notFailBuild.html">
 			<f:checkbox field="notFailBuild" checked="${it.notFailBuild}" />
 		</f:entry>
-		<!--TODO show only for matrix jobs  j:when test="" -->
+        <j:if test="${instance.isMatrixProject(it)}">
 			<f:entry title="${%Cleanup workspace of matrix parent}" help="/plugin/ws-cleanup/help/cleanupMatrixParent.html">
 				<f:checkbox field="cleanupMatrixParent" checked="${it.cleanupMatrixParent}" />
 			</f:entry>
-		<!-- /j:when -->
+		</j:if>
 	</f:advanced>
 </j:jelly>
