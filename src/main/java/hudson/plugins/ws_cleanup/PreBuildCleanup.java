@@ -9,6 +9,7 @@ import hudson.model.BuildListener;
 import hudson.model.Descriptor;
 import hudson.tasks.BuildWrapper;
 import hudson.EnvVars;
+import hudson.slaves.EnvironmentVariablesNodeProperty;
 
 import java.io.IOException;
 import java.util.List;
@@ -72,6 +73,7 @@ public class PreBuildCleanup extends BuildWrapper {
 
 		listener.getLogger().append("\nDeleting project workspace... ");
 		FilePath ws = build.getWorkspace();
+               
 		if (ws != null) {
 			try {
 				// Retry the operation a couple of times,
@@ -81,9 +83,8 @@ public class PreBuildCleanup extends BuildWrapper {
 						if (ws == null || !ws.exists())
 							return;
 						if (patterns == null || patterns.isEmpty()) {
-							ws.deleteRecursive();
-						} else {
-							build.getWorkspace().act(new Cleanup(patterns,deleteDirs));
+							build.getWorkspace().act(new Cleanup(patterns,deleteDirs, build.getBuiltOn().getNodeProperties().get(
+                                EnvironmentVariablesNodeProperty.class), listener));
 						}
 
 						listener.getLogger().append("done\n\n");

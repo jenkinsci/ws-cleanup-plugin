@@ -6,6 +6,7 @@ import hudson.matrix.MatrixAggregator;
 import hudson.matrix.MatrixBuild;
 import hudson.model.BuildListener;
 import hudson.model.Result;
+import hudson.slaves.EnvironmentVariablesNodeProperty;
 
 import java.io.IOException;
 import java.util.List;
@@ -98,7 +99,8 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
             if (patterns == null || patterns.isEmpty()) {
                 workspace.deleteRecursive();
             } else {
-                workspace.act(new Cleanup(patterns,deleteDirs));
+                workspace.act(new Cleanup(patterns,deleteDirs, build.getBuiltOn().getNodeProperties().get(
+                                EnvironmentVariablesNodeProperty.class), listener));
             }
             listener.getLogger().append("done\n\n");
         } catch (Exception ex) {
