@@ -14,6 +14,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
+import hudson.slaves.EnvironmentVariablesNodeProperty;
 
 import java.io.IOException;
 import java.util.List;
@@ -44,11 +45,12 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
 
     private final boolean notFailBuild;
     private final boolean cleanupMatrixParent;
+    private final String externalDelete;
 
     @DataBoundConstructor
     // FIXME can't get repeteable to work with a List<String>
     public WsCleanup(List<Pattern> patterns, boolean deleteDirs, final boolean cleanWhenSuccess, final boolean cleanWhenUnstable, final boolean cleanWhenFailure,
-                     final boolean cleanWhenNotBuilt, final boolean cleanWhenAborted, final boolean notFailBuild, final boolean cleanupMatrixParent) {
+                     final boolean cleanWhenNotBuilt, final boolean cleanWhenAborted, final boolean notFailBuild, final boolean cleanupMatrixParent, final String externalDelete) {
         this.patterns = patterns;
         this.deleteDirs = deleteDirs;
         this.notFailBuild = notFailBuild;
@@ -58,6 +60,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
         this.cleanWhenFailure = cleanWhenFailure;
         this.cleanWhenNotBuilt = cleanWhenNotBuilt;
         this.cleanWhenAborted = cleanWhenAborted;
+        this.externalDelete = externalDelete;
     }
 
     public Object readResolve(){
@@ -124,6 +127,10 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
 	public boolean getCleanupMatrixParent() {
     	return cleanupMatrixParent;
     }
+        
+    public String getExternalDelete() {
+        return this.externalDelete;
+    }
 
     private boolean shouldCleanBuildBasedOnState(Result result) {
         if(result.equals(Result.SUCCESS))
@@ -151,10 +158,15 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
         		listener.getLogger().append("Skipped based on build state " + build.getResult() + "\n\n");
         		return true;
         	}
-            if (patterns == null || patterns.isEmpty()) {
+            if ((patterns == null || patterns.isEmpty()) && externalDelete.length() == 0) {
                 workspace.deleteRecursive();
             } else {
-                workspace.act(new Cleanup(patterns,deleteDirs));
+                
+                workspace.act(
+                        new Cleanup(
+                            patterns,
+                            deleteDirs, build.getBuiltOn().getNodeProperties().get(
+                                EnvironmentVariablesNodeProperty.class), externalDelete, listener));
             }
             listener.getLogger().append("done\n\n");
         } catch (Exception ex) {
@@ -172,7 +184,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
 	public MatrixAggregator createAggregator(MatrixBuild build, Launcher launcher, BuildListener listener) {
 		if(cleanupMatrixParent)
 			return new WsCleanupMatrixAggregator(build, launcher, listener, patterns, deleteDirs, cleanWhenSuccess, cleanWhenUnstable, cleanWhenFailure,
-                cleanWhenNotBuilt, cleanWhenAborted, notFailBuild);
+                cleanWhenNotBuilt, cleanWhenAborted, notFailBuild, this.externalDelete);
 		return null;
 	}
 	
