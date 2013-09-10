@@ -24,10 +24,11 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
     private final boolean cleanWhenFailure;
     private final boolean cleanWhenNotBuilt;
     private final boolean cleanWhenAborted;
+    private final String externalDelete;
 	
 	public WsCleanupMatrixAggregator(MatrixBuild build, Launcher launcher, BuildListener listener, List<Pattern> patterns, 
 			boolean deleteDirs, final boolean cleanWhenSuccess, final boolean cleanWhenUnstable, final boolean cleanWhenFailure,
-            final boolean cleanWhenNotBuilt, final boolean cleanWhenAborted, final boolean notFailBuild) {
+            final boolean cleanWhenNotBuilt, final boolean cleanWhenAborted, final boolean notFailBuild, final String externalDelete) {
 		super(build, launcher, listener);
 		this.patterns = patterns;
 		this.deleteDirs = deleteDirs;
@@ -37,6 +38,7 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
         this.cleanWhenNotBuilt = cleanWhenNotBuilt;
         this.cleanWhenAborted = cleanWhenAborted;
 		this.notFailBuild = notFailBuild;
+        this.externalDelete = externalDelete;
     }
 	
 	public boolean endBuild() throws InterruptedException, IOException {
@@ -100,7 +102,7 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
                 workspace.deleteRecursive();
             } else {
                 workspace.act(new Cleanup(patterns,deleteDirs, build.getBuiltOn().getNodeProperties().get(
-                                EnvironmentVariablesNodeProperty.class), listener));
+                                EnvironmentVariablesNodeProperty.class), externalDelete, listener));
             }
             listener.getLogger().append("done\n\n");
         } catch (Exception ex) {

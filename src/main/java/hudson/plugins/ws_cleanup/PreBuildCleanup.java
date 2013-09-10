@@ -27,12 +27,14 @@ public class PreBuildCleanup extends BuildWrapper {
 	private final List<Pattern> patterns;
 	private final boolean deleteDirs;
 	private final String cleanupParameter;
+        private final String externalDelete;
 
 	@DataBoundConstructor
-	public PreBuildCleanup(List<Pattern> patterns, boolean deleteDirs, String cleanupParameter) {
+	public PreBuildCleanup(List<Pattern> patterns, boolean deleteDirs, String cleanupParameter, String externalDelete) {
 		this.patterns = patterns;
 		this.deleteDirs = deleteDirs;
 		this.cleanupParameter = cleanupParameter;
+                this.externalDelete = externalDelete;
 	}
 
 	public List<Pattern> getPatterns(){
@@ -47,6 +49,10 @@ public class PreBuildCleanup extends BuildWrapper {
 		return this.cleanupParameter;
 	}
 	
+        public String getExternalDelete() {
+            return this.externalDelete;
+        }
+        
 	@Override
 	public DescriptorImpl getDescriptor() {
 		return (DescriptorImpl) super.getDescriptor();
@@ -84,7 +90,7 @@ public class PreBuildCleanup extends BuildWrapper {
 							return;
 						if (patterns == null || patterns.isEmpty()) {
 							build.getWorkspace().act(new Cleanup(patterns,deleteDirs, build.getBuiltOn().getNodeProperties().get(
-                                EnvironmentVariablesNodeProperty.class), listener));
+                                EnvironmentVariablesNodeProperty.class), externalDelete, listener));
 						}
 
 						listener.getLogger().append("done\n\n");

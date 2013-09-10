@@ -1,45 +1,49 @@
 <!-- The MIT License Copyright (c) 2010, CloudBees Inc, Nicolas De loof Permission 
-	is hereby granted, free of charge, to any person obtaining a copy of this 
-	software and associated documentation files (the "Software"), to deal in 
-	the Software without restriction, including without limitation the rights 
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-	copies of the Software, and to permit persons to whom the Software is furnished 
-	to do so, subject to the following conditions: The above copyright notice 
-	and this permission notice shall be included in all copies or substantial 
-	portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY 
-	OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
-	OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
-	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
-	DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
-	ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
-	DEALINGS IN THE SOFTWARE. -->
+is hereby granted, free of charge, to any person obtaining a copy of this 
+software and associated documentation files (the "Software"), to deal in 
+the Software without restriction, including without limitation the rights 
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+copies of the Software, and to permit persons to whom the Software is furnished 
+to do so, subject to the following conditions: The above copyright notice 
+and this permission notice shall be included in all copies or substantial 
+portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY 
+OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+DEALINGS IN THE SOFTWARE. -->
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
-	<f:advanced align="left">
-		<f:entry title="${%Patterns for files to be deleted}" help="/plugin/ws-cleanup/help/patterns.html">
-			<f:repeatable field="patterns">
-				<st:include page="config.jelly" class="hudson.plugins.ws_cleanup.Pattern" />
-				<div align="right">
-					<f:repeatableDeleteButton />
-				</div>
-			</f:repeatable>
-		</f:entry>
-		<f:entry title="${%Apply pattern also on directories}">
-			<f:checkbox field="deleteDirs" checked="${it.deleteDirs}" />
-		</f:entry>
-		<f:entry title="${%Clean when status is}">
+    <f:advanced align="left">
+        <f:entry title="${%Patterns for files to be deleted}" help="/plugin/ws-cleanup/help/patterns.html">
+            <f:repeatable field="patterns">
+                <st:include page="config.jelly" class="hudson.plugins.ws_cleanup.Pattern" />
+                <div align="right">
+                    <f:repeatableDeleteButton />
+                </div>
+            </f:repeatable>
+        </f:entry>
+        <f:entry title="${%Apply pattern also on directories}">
+            <f:checkbox field="deleteDirs" checked="${it.deleteDirs}" />
+        </f:entry>
+        <f:entry title="${%Clean when status is}">
             <f:checkbox field="cleanWhenSuccess" checked="${it.cleanWhenSuccess}" default="true" title="${%Success}"/>
             <f:checkbox field="cleanWhenUnstable" checked="${it.cleanWhenUnstable}" default="true" title="${%Unstable}"/>
             <f:checkbox field="cleanWhenFailure" checked="${it.cleanWhenFailure}" default="true" title="${%Failure}"/>
             <f:checkbox field="cleanWhenNotBuilt" checked="${it.cleanWhenNotBuilt}" default="true" title="${%Not Built}"/>
             <f:checkbox field="cleanWhenAborted" checked="${it.cleanWhenAborted}" default="true" title="${%Aborted}"/>
         </f:entry>
-		<f:entry title="${%Don't fail the build if cleanup fails}" help="/plugin/ws-cleanup/help/notFailBuild.html">
-			<f:checkbox field="notFailBuild" checked="${it.notFailBuild}" />
-		</f:entry>
+        <f:entry title="${%Don't fail the build if cleanup fails}" help="/plugin/ws-cleanup/help/notFailBuild.html">
+            <f:checkbox field="notFailBuild" checked="${it.notFailBuild}" />
+        </f:entry>
         <j:if test="${instance.isMatrixProject(it)}">
-			<f:entry title="${%Cleanup workspace of matrix parent}" help="/plugin/ws-cleanup/help/cleanupMatrixParent.html">
-				<f:checkbox field="cleanupMatrixParent" checked="${it.cleanupMatrixParent}" />
-			</f:entry>
-		</j:if>
-	</f:advanced>
+            <f:entry title="${%Cleanup workspace of matrix parent}" help="/plugin/ws-cleanup/help/cleanupMatrixParent.html">
+                <f:checkbox field="cleanupMatrixParent" checked="${it.cleanupMatrixParent}" />
+            </f:entry>
+        </j:if>
+        
+        <f:entry title="${%External Deletion Command}" help="/plugin/ws-cleanup/help/externalDelete.html">
+            <f:textbox field="externalDelete" />
+        </f:entry>
+    </f:advanced>
 </j:jelly>

@@ -22,12 +22,14 @@ class Cleanup implements FileCallable<Object> {
     private String delete_command = null;
     private BuildListener listener = null;
 
-    public Cleanup(List<Pattern> patterns, boolean deleteDirs, EnvironmentVariablesNodeProperty environment, BuildListener listener) {
+    public Cleanup(List<Pattern> patterns, boolean deleteDirs, EnvironmentVariablesNodeProperty environment, String command, BuildListener listener) {
 
         this.deleteDirs = deleteDirs;
         try {
-            this.delete_command = environment.getEnvVars().get("delete_command");            
-            
+            this.delete_command = environment.getEnvVars().expand(command);            
+            if(this.delete_command.length() == 0) {
+                this.delete_command = null;
+            }
         } catch( NullPointerException ex ) {
             this.delete_command = null;
         } 
