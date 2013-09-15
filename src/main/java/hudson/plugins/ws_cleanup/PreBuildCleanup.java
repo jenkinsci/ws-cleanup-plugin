@@ -88,7 +88,9 @@ public class PreBuildCleanup extends BuildWrapper {
 					try {
 						if (ws == null || !ws.exists())
 							return;
-						if (patterns == null || patterns.isEmpty()) {
+						if ((patterns == null || patterns.isEmpty()) && (externalDelete == null || externalDelete.isEmpty())) {
+						    ws.deleteRecursive();
+						} else {
 							build.getWorkspace().act(new Cleanup(patterns,deleteDirs, build.getBuiltOn().getNodeProperties().get(
                                 EnvironmentVariablesNodeProperty.class), externalDelete, listener));
 						}
