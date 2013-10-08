@@ -51,7 +51,16 @@ class Cleanup implements FileCallable<Object> {
         if (delete_command != null && patterns == null) {            
             temp_command = delete_command.replaceAll("%s", "\"" + StringEscapeUtils.escapeJava(f.getPath()) + "\"");
             this.listener.getLogger().println("Using command: " + temp_command);
-            Process deletion_proc = new ProcessBuilder(temp_command).start();
+            List<String> list = new ArrayList<String>();
+            
+            java.util.regex.Pattern p = java.util.regex.Pattern.compile("\"[^\"]+\"|\\S+");
+            java.util.regex.Matcher m = p.matcher(temp_command);
+            
+            while(m.find()) {
+                list.add(m.group());
+            }
+            
+            Process deletion_proc = new ProcessBuilder(list).start();
             deletion_proc.waitFor();
             
             return null;
