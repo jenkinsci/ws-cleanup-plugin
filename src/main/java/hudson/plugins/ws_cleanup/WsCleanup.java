@@ -1,5 +1,6 @@
 package hudson.plugins.ws_cleanup;
 
+import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -175,7 +176,10 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
             	listener.getLogger().append("Option not to fail the build is turned on, so let's continue\n");
             	return true;
             }
-            return false;
+            listener.getLogger().append("Cannot delete workspace: " + ex.getCause() + "\n");
+            Logger.getLogger(WsCleanup.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            throw new AbortException("Cannot delete workspace: " + ex.getCause());
         }
         return true;
     }
