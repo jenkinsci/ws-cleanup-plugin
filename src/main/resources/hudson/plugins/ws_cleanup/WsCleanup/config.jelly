@@ -15,6 +15,11 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE. -->
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
     <f:advanced align="left">
+    
+        <f:entry title="${%Ignore cleanup on master}">
+            <f:checkbox field="ignoreCleanupOnMaster" checked="${it.ignoreCleanupOnMaster}" />
+        </f:entry>
+        
         <f:entry title="${%Patterns for files to be deleted}" help="/plugin/ws-cleanup/help/patterns.html">
             <f:repeatable field="patterns">
                 <st:include page="config.jelly" class="hudson.plugins.ws_cleanup.Pattern" />

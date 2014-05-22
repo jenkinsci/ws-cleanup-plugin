@@ -17,6 +17,7 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
 	
 	private final List<Pattern> patterns;
     private final boolean deleteDirs;
+    private final boolean ignoreCleanupOnMaster;
     private final boolean notFailBuild;
 
     private final boolean cleanWhenSuccess;
@@ -27,11 +28,12 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
     private final String externalDelete;
 	
 	public WsCleanupMatrixAggregator(MatrixBuild build, Launcher launcher, BuildListener listener, List<Pattern> patterns, 
-			boolean deleteDirs, final boolean cleanWhenSuccess, final boolean cleanWhenUnstable, final boolean cleanWhenFailure,
+			boolean deleteDirs, boolean ignoreCleanupOnMaster, final boolean cleanWhenSuccess, final boolean cleanWhenUnstable, final boolean cleanWhenFailure,
             final boolean cleanWhenNotBuilt, final boolean cleanWhenAborted, final boolean notFailBuild, final String externalDelete) {
 		super(build, launcher, listener);
 		this.patterns = patterns;
 		this.deleteDirs = deleteDirs;
+		this.ignoreCleanupOnMaster = ignoreCleanupOnMaster;
         this.cleanWhenSuccess = cleanWhenSuccess;
         this.cleanWhenUnstable = cleanWhenUnstable;
         this.cleanWhenFailure = cleanWhenFailure;
@@ -61,6 +63,10 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
     }
 
 	private boolean doWorkspaceCleanup() throws IOException, InterruptedException {
+		if(ignoreCleanupOnMaster &&  "".equals(build.getBuiltOn().getNodeName())){
+			listener.getLogger().append("\nBuild is on master node, deleting project workspace is cancelled.\n");
+			return true;
+		}
 		listener.getLogger().append("\nDeleting matrix project workspace... \n");
 		
 		//TODO do we want to keep keep child workpsaces if run on the same machine? Make it optional?

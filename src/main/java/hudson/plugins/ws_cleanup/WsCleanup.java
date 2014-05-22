@@ -35,6 +35,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
 
     private final List<Pattern> patterns;
     private final boolean deleteDirs;
+    private final boolean ignoreCleanupOnMaster;
 
     @Deprecated
     private boolean skipWhenFailed; // keep it for backward compatibility
@@ -50,10 +51,11 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
 
     @DataBoundConstructor
     // FIXME can't get repeteable to work with a List<String>
-    public WsCleanup(List<Pattern> patterns, boolean deleteDirs, final boolean cleanWhenSuccess, final boolean cleanWhenUnstable, final boolean cleanWhenFailure,
+    public WsCleanup(List<Pattern> patterns, boolean deleteDirs, boolean ignoreCleanupOnMaster,  final boolean cleanWhenSuccess, final boolean cleanWhenUnstable, final boolean cleanWhenFailure,
                      final boolean cleanWhenNotBuilt, final boolean cleanWhenAborted, final boolean notFailBuild, final boolean cleanupMatrixParent, final String externalDelete) {
         this.patterns = patterns;
         this.deleteDirs = deleteDirs;
+        this.ignoreCleanupOnMaster = ignoreCleanupOnMaster;
         this.notFailBuild = notFailBuild;
         this.cleanupMatrixParent = cleanupMatrixParent;
         this.cleanWhenSuccess = cleanWhenSuccess;
@@ -101,6 +103,10 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
     	return deleteDirs;
     }
 
+    public boolean getIgnoreCleanupOnMaster(){
+    	return ignoreCleanupOnMaster;
+    }
+    
     public boolean getNotFailBuild() {
     	return notFailBuild;
     }
@@ -150,6 +156,10 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
         
 	@Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+		if(ignoreCleanupOnMaster &&  "".equals(build.getBuiltOn().getNodeName())){
+			listener.getLogger().append("\nBuild is on master node, deleting project workspace is cancelled.\n");
+			return true;
+		}
         listener.getLogger().append("\nDeleting project workspace... \n");
         FilePath workspace = build.getWorkspace();
         try {
@@ -184,7 +194,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
 
 	public MatrixAggregator createAggregator(MatrixBuild build, Launcher launcher, BuildListener listener) {
 		if(cleanupMatrixParent)
-			return new WsCleanupMatrixAggregator(build, launcher, listener, patterns, deleteDirs, cleanWhenSuccess, cleanWhenUnstable, cleanWhenFailure,
+			return new WsCleanupMatrixAggregator(build, launcher, listener, patterns, deleteDirs, ignoreCleanupOnMaster,  cleanWhenSuccess, cleanWhenUnstable, cleanWhenFailure,
                 cleanWhenNotBuilt, cleanWhenAborted, notFailBuild, this.externalDelete);
 		return null;
 	}
