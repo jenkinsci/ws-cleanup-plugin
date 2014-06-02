@@ -9,6 +9,7 @@ import hudson.slaves.EnvironmentVariablesNodeProperty;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -26,9 +27,14 @@ class Cleanup implements FileCallable<Object> {
 
         this.deleteDirs = deleteDirs;
         try {
-            this.delete_command = environment.getEnvVars().expand(command);            
-            if(this.delete_command.length() == 0) {
-                this.delete_command = null;
+            if(environment==null){
+                this.delete_command = command;
+            }
+            else{
+                this.delete_command = environment.getEnvVars().expand(command);  
+                if(this.delete_command.length() == 0) {
+                    this.delete_command = null;
+                }
             }
         } catch( NullPointerException ex ) {
             this.delete_command = null;
@@ -46,23 +52,24 @@ class Cleanup implements FileCallable<Object> {
     
     // Can't use FileCallable<Void> to return void
     public Object invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-        String temp_command = null;
-                
-        if (delete_command != null && patterns == null) {            
-            temp_command = delete_command.replaceAll("%s", "\"" + StringEscapeUtils.escapeJava(f.getPath()) + "\"");
+        String temp_command = null;    
+        if (delete_command != null && (patterns == null || patterns.isEmpty())) {            
+            temp_command = delete_command.replaceAll("%s", StringEscapeUtils.escapeJava(f.getPath()));
             this.listener.getLogger().println("Using command: " + temp_command);
             List<String> list = new ArrayList<String>();
             
             java.util.regex.Pattern p = java.util.regex.Pattern.compile("\"[^\"]+\"|\\S+");
-            java.util.regex.Matcher m = p.matcher(temp_command);
-            
+            java.util.regex.Matcher m = p.matcher(delete_command);
             while(m.find()) {
-                list.add(m.group());
+                list.add(m.group().replaceAll("%s", StringEscapeUtils.escapeJava(f.getPath())));
             }
-            
             Process deletion_proc = new ProcessBuilder(list).start();
-            deletion_proc.waitFor();
-            
+            InputStream stream = deletion_proc.getErrorStream();
+            int b = stream.read();
+            while(b!=-1){
+               listener.getLogger().print(b);
+               b=stream.read();
+            }
             return null;
         } else {
             if(patterns == null) {
@@ -105,7 +112,13 @@ class Cleanup implements FileCallable<Object> {
                 if (delete_command != null) {
                     temp_command = delete_command.replaceAll("%s", "\"" + StringEscapeUtils.escapeJava((new File(f, path)).getPath()) + "\"");
                     this.listener.getLogger().println("Using command: " + temp_command);
-                    Process deletion_proc = new ProcessBuilder(temp_command).start();
+                    List<String> list = new ArrayList<String>();
+                    java.util.regex.Pattern p = java.util.regex.Pattern.compile("\"[^\"]+\"|\\S+");
+                    java.util.regex.Matcher m = p.matcher(delete_command);
+                    while(m.find()) {
+                        list.add(m.group().replaceAll("%s", StringEscapeUtils.escapeJava(f.getPath())));
+                    }
+                    Process deletion_proc = new ProcessBuilder(list).start();
                     deletion_proc.waitFor();
                 } else {
                     Util.deleteRecursive(new File(f, path));
