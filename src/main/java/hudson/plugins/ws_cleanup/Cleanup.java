@@ -33,7 +33,7 @@ class Cleanup implements FileCallable<Object> {
         if (environment != null) { // allow slave environment to overwrite delete cmd
             this.deleteCommand = environment.getEnvVars().expand(command);
         }
-        
+
         if (patterns == null) { // if pattern is not set up, delete everything
             patterns = new ArrayList<Pattern>();
             patterns.add(new Pattern("**/*", PatternType.INCLUDE));
@@ -51,6 +51,7 @@ class Cleanup implements FileCallable<Object> {
             doDelete(cmdList);
         } else {
             DirectoryScanner ds = new DirectoryScanner();
+            ds.setFollowSymlinks(false);
             ds.setBasedir(f);
             ArrayList<String> includes = new ArrayList<String>();
             ArrayList<String> excludes = new ArrayList<String>();
@@ -76,13 +77,16 @@ class Cleanup implements FileCallable<Object> {
             if (deleteDirs) {
                 length += ds.getIncludedDirsCount();
             }
+            final String[] nonFollowedSymlinks = ds.getNotFollowedSymlinks();
+            length += nonFollowedSymlinks.length;
             String[] toDelete = new String[length];
             System.arraycopy(ds.getIncludedFiles(), 0, toDelete, 0, ds.getIncludedFilesCount());
             if (deleteDirs) {
                 System.arraycopy(ds.getIncludedDirectories(), 0, toDelete, ds.getIncludedFilesCount(),
                         ds.getIncludedDirsCount());
             }
-
+            System.arraycopy(nonFollowedSymlinks, 0, toDelete, ds.getIncludedFilesCount() + ds.getIncludedDirsCount(),
+                    nonFollowedSymlinks.length);
             for (String path : toDelete) {
                 if (deleteCommand != null) {
                     List<String> cmdList = fixQuotesAndExpand((new File(f, path)).getPath());
@@ -105,7 +109,7 @@ class Cleanup implements FileCallable<Object> {
      */
     private List<String> fixQuotesAndExpand(String fullPath) {
         String tempCommand = null;
-        if(deleteCommand.contains("%s")) {
+        if (deleteCommand.contains("%s")) {
             tempCommand = deleteCommand.replaceAll("%s", "\"" + StringEscapeUtils.escapeJava(fullPath) + "\"");
         } else {
             tempCommand = deleteCommand + " " + fullPath;
