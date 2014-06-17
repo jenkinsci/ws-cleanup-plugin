@@ -78,6 +78,7 @@ class Cleanup implements FileCallable<Object> {
             }
             
             DirectoryScanner ds = new DirectoryScanner();
+            ds.setFollowSymlinks(false);
             ds.setBasedir(f);
             ArrayList<String> includes = new ArrayList<String>();
             ArrayList<String> excludes = new ArrayList<String>();
@@ -103,11 +104,14 @@ class Cleanup implements FileCallable<Object> {
             if (deleteDirs) {
                 length += ds.getIncludedDirsCount();
             }
+            final String[] nonFollowedSymlinks = ds.getNotFollowedSymlinks();
+            length += nonFollowedSymlinks.length;
             String[] toDelete = new String[length];
             System.arraycopy(ds.getIncludedFiles(), 0, toDelete, 0, ds.getIncludedFilesCount());
             if (deleteDirs) {
                 System.arraycopy(ds.getIncludedDirectories(), 0, toDelete, ds.getIncludedFilesCount(), ds.getIncludedDirsCount());
             }
+            System.arraycopy(nonFollowedSymlinks, 0, toDelete, ds.getIncludedFilesCount() + ds.getIncludedDirsCount(), nonFollowedSymlinks.length);
             for (String path : toDelete) {
                 if (delete_command != null) {
                     temp_command = delete_command.replaceAll("%s", "\"" + StringEscapeUtils.escapeJava((new File(f, path)).getPath()) + "\"");
