@@ -9,63 +9,47 @@ import hudson.slaves.EnvironmentVariablesNodeProperty;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang.StringEscapeUtils;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.tools.ant.DirectoryScanner;
 
 class Cleanup implements FileCallable<Object> {
 
     private List<Pattern> patterns;
     private final boolean deleteDirs;
-    private String delete_command = null;
+    private String deleteCommand = null;
     private BuildListener listener = null;
 
-    public Cleanup(List<Pattern> patterns, boolean deleteDirs, EnvironmentVariablesNodeProperty environment, String command, BuildListener listener) {
+    public Cleanup(List<Pattern> patterns, boolean deleteDirs, EnvironmentVariablesNodeProperty environment,
+            String command, BuildListener listener) {
 
         this.deleteDirs = deleteDirs;
         this.listener = listener;
         this.patterns = (patterns == null || patterns.isEmpty()) ? null : patterns;
-        this.delete_command = (command == null || command.isEmpty()) ? null : command;
+        this.deleteCommand = (command == null || command.isEmpty()) ? null : command;
+
+        if (environment != null) { // allow slave environment to overwrite delete cmd
+            this.deleteCommand = environment.getEnvVars().expand(command);
+        }
         
-        if(environment != null) {
-            this.delete_command = environment.getEnvVars().expand(command); 
+        if (patterns == null) { // if pattern is not set up, delete everything
+            patterns = new ArrayList<Pattern>();
+            patterns.add(new Pattern("**/*", PatternType.INCLUDE));
         }
     }
 
     public boolean getDeleteDirs() {
         return deleteDirs;
     }
-    
+
     // Can't use FileCallable<Void> to return void
     public Object invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-        String temp_command = null;    
-        if (delete_command != null && patterns == null) {            
-            temp_command = delete_command.replaceAll("%s", StringEscapeUtils.escapeJava(f.getPath()));
-            this.listener.getLogger().println("Using command: " + temp_command);
-            List<String> list = new ArrayList<String>();
-            java.util.regex.Pattern p = java.util.regex.Pattern.compile("\"[^\"]+\"|\\S+");
-            java.util.regex.Matcher m = p.matcher(temp_command);
-            while(m.find()) {
-                list.add(m.group().replaceAll("%s", StringEscapeUtils.escapeJava(f.getPath())));
-            }
-            
-            Process deletion_proc = new ProcessBuilder(list).start();
-            InputStream stream = deletion_proc.getErrorStream();
-            int b = stream.read();
-            while(b!=-1){
-               listener.getLogger().print(b);
-               b=stream.read();
-            }
-            return null;
+        if (deleteCommand != null) {
+            List<String> cmdList = fixQuotesAndExpand(f.getPath());
+            doDelete(cmdList);
         } else {
-            if(patterns == null) {
-                patterns = new ArrayList<Pattern>();
-                patterns.add(new Pattern("**/*", PatternType.INCLUDE));
-            }
-            
             DirectoryScanner ds = new DirectoryScanner();
             ds.setBasedir(f);
             ArrayList<String> includes = new ArrayList<String>();
@@ -77,7 +61,7 @@ class Cleanup implements FileCallable<Object> {
                     excludes.add(pattern.getPattern());
                 }
             }
-            //if there is no include pattern, set up ** (all) as include
+            // if there is no include pattern, set up ** (all) as include
             if (includes.isEmpty()) {
                 includes.add("**/*");
             }
@@ -95,25 +79,59 @@ class Cleanup implements FileCallable<Object> {
             String[] toDelete = new String[length];
             System.arraycopy(ds.getIncludedFiles(), 0, toDelete, 0, ds.getIncludedFilesCount());
             if (deleteDirs) {
-                System.arraycopy(ds.getIncludedDirectories(), 0, toDelete, ds.getIncludedFilesCount(), ds.getIncludedDirsCount());
+                System.arraycopy(ds.getIncludedDirectories(), 0, toDelete, ds.getIncludedFilesCount(),
+                        ds.getIncludedDirsCount());
             }
+
             for (String path : toDelete) {
-                if (delete_command != null) {
-                    temp_command = delete_command.replaceAll("%s", "\"" + StringEscapeUtils.escapeJava((new File(f, path)).getPath()) + "\"");
-                    this.listener.getLogger().println("Using command: " + temp_command);
-                    List<String> list = new ArrayList<String>();
-                    java.util.regex.Pattern p = java.util.regex.Pattern.compile("\"[^\"]+\"|\\S+");
-                    java.util.regex.Matcher m = p.matcher(temp_command);
-                    while(m.find()) {
-                        list.add(m.group().replaceAll("%s", StringEscapeUtils.escapeJava(f.getPath())));
-                    }
-                    Process deletion_proc = new ProcessBuilder(list).start();
-                    deletion_proc.waitFor();
+                if (deleteCommand != null) {
+                    List<String> cmdList = fixQuotesAndExpand((new File(f, path)).getPath());
+                    doDelete(cmdList);
                 } else {
                     Util.deleteRecursive(new File(f, path));
                 }
             }
-            return null;
         }
+        return null;
+    }
+
+    /**
+     * 
+     * THB I don't remember what exactly original author meant in 998354608 (and why I merge it), but my understanding
+     * is that it should support windows tool, which can contain spaces in path to external tool as well as in paths to
+     * be deleted. If command or path contains spaces, not to split it, whole piece is quoted. It should also support
+     * some strange parameter order in form of $cmd %s /parameters.
+     * 
+     */
+    private List<String> fixQuotesAndExpand(String fullPath) {
+        String tempCommand = null;
+        if(deleteCommand.contains("%s")) {
+            tempCommand = deleteCommand.replaceAll("%s", "\"" + StringEscapeUtils.escapeJava(fullPath) + "\"");
+        } else {
+            tempCommand = deleteCommand + " " + fullPath;
+        }
+        List<String> cmdList = new ArrayList<String>();
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile("\"([^\"]+)\"|(\\S+)");
+        java.util.regex.Matcher m = p.matcher(tempCommand);
+        StringBuilder finalCmd = new StringBuilder("Using command: ");
+        while (m.find()) {
+            if (m.group(1) != null) {
+                cmdList.add(m.group(1));
+                finalCmd.append(m.group(1));
+            }
+            if (m.group(2) != null) {
+                cmdList.add(m.group(2));
+                finalCmd.append(m.group(2));
+            }
+            finalCmd.append(" ");
+        }
+
+        this.listener.getLogger().println(finalCmd.toString());
+        return cmdList;
+    }
+
+    private void doDelete(List<String> cmdList) throws IOException, InterruptedException {
+        Process deletProc = new ProcessBuilder(cmdList).start();
+        deletProc.waitFor();
     }
 }
