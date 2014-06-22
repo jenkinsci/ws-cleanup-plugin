@@ -10,6 +10,7 @@ import hudson.slaves.EnvironmentVariablesNodeProperty;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang.StringEscapeUtils;
@@ -27,7 +28,7 @@ class Cleanup implements FileCallable<Object> {
 
         this.deleteDirs = deleteDirs;
         this.listener = listener;
-        this.patterns = (patterns == null || patterns.isEmpty()) ? null : patterns;
+        this.patterns = (patterns == null) ? (List<Pattern>)Collections.EMPTY_LIST : patterns;
         this.deleteCommand = (command == null || command.isEmpty()) ? null : command;
 
         if (environment != null) { // allow slave environment to overwrite delete cmd
@@ -46,56 +47,53 @@ class Cleanup implements FileCallable<Object> {
 
     // Can't use FileCallable<Void> to return void
     public Object invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-        if (deleteCommand != null) {
-            List<String> cmdList = fixQuotesAndExpand(f.getPath());
-            doDelete(cmdList);
-        } else {
-            DirectoryScanner ds = new DirectoryScanner();
-            ds.setFollowSymlinks(false);
-            ds.setBasedir(f);
-            ArrayList<String> includes = new ArrayList<String>();
-            ArrayList<String> excludes = new ArrayList<String>();
-            for (Pattern pattern : patterns) {
-                if (pattern.getType() == PatternType.INCLUDE) {
-                    includes.add(pattern.getPattern());
-                } else {
-                    excludes.add(pattern.getPattern());
-                }
+        DirectoryScanner ds = new DirectoryScanner();
+        ds.setFollowSymlinks(false);
+        ds.setBasedir(f);
+        ArrayList<String> includes = new ArrayList<String>();
+        ArrayList<String> excludes = new ArrayList<String>();
+        for (Pattern pattern : patterns) {
+            if (pattern.getType() == PatternType.INCLUDE) {
+                includes.add(pattern.getPattern());
+            } else {
+                excludes.add(pattern.getPattern());
             }
-            // if there is no include pattern, set up ** (all) as include
-            if (includes.isEmpty()) {
-                includes.add("**/*");
-            }
-            String[] includesArray = new String[(includes.size())];
-            String[] excludesArray = new String[excludes.size()];
-            includes.toArray(includesArray);
-            excludes.toArray(excludesArray);
-            ds.setIncludes(includesArray);
-            ds.setExcludes(excludesArray);
-            ds.scan();
-            int length = ds.getIncludedFilesCount();
-            if (deleteDirs) {
-                length += ds.getIncludedDirsCount();
-            }
-            final String[] nonFollowedSymlinks = ds.getNotFollowedSymlinks();
-            length += nonFollowedSymlinks.length;
-            String[] toDelete = new String[length];
-            int incDirCount = 0;
-            System.arraycopy(ds.getIncludedFiles(), 0, toDelete, 0, ds.getIncludedFilesCount());
-            if (deleteDirs) {
-                System.arraycopy(ds.getIncludedDirectories(), 0, toDelete, ds.getIncludedFilesCount(),
-                        ds.getIncludedDirsCount());
-                incDirCount = ds.getIncludedDirsCount();
-            }
-            System.arraycopy(nonFollowedSymlinks, 0, toDelete, ds.getIncludedFilesCount() + incDirCount,
-                    nonFollowedSymlinks.length);
-            for (String path : toDelete) {
-                if (deleteCommand != null) {
-                    List<String> cmdList = fixQuotesAndExpand((new File(f, path)).getPath());
-                    doDelete(cmdList);
-                } else {
-                    Util.deleteRecursive(new File(f, path));
-                }
+        }
+        // if there is no include pattern, set up ** (all) as include
+        if (includes.isEmpty()) {
+            includes.add("**/*");
+        }
+        String[] includesArray = new String[(includes.size())];
+        String[] excludesArray = new String[excludes.size()];
+        includes.toArray(includesArray);
+        excludes.toArray(excludesArray);
+        ds.setIncludes(includesArray);
+        ds.setExcludes(excludesArray);
+        ds.scan();
+        
+        int length = ds.getIncludedFilesCount();
+        if (deleteDirs) {
+            length += ds.getIncludedDirsCount();
+        }
+        final String[] nonFollowedSymlinks = ds.getNotFollowedSymlinks();
+        length += nonFollowedSymlinks.length;
+        String[] toDelete = new String[length];
+        int incDirCount = 0;
+        System.arraycopy(ds.getIncludedFiles(), 0, toDelete, 0, ds.getIncludedFilesCount());
+        if (deleteDirs) {
+            System.arraycopy(ds.getIncludedDirectories(), 0, toDelete, ds.getIncludedFilesCount(),
+                    ds.getIncludedDirsCount());
+            incDirCount = ds.getIncludedDirsCount();
+        }
+        System.arraycopy(nonFollowedSymlinks, 0, toDelete, ds.getIncludedFilesCount() + incDirCount,
+                nonFollowedSymlinks.length);
+        
+        for (String path : toDelete) {
+            if (deleteCommand != null) {
+                List<String> cmdList = fixQuotesAndExpand((new File(f, path)).getPath());
+                doDelete(cmdList);
+            } else {
+                Util.deleteRecursive(new File(f, path));
             }
         }
         return null;
