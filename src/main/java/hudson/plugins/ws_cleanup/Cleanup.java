@@ -80,12 +80,14 @@ class Cleanup implements FileCallable<Object> {
             final String[] nonFollowedSymlinks = ds.getNotFollowedSymlinks();
             length += nonFollowedSymlinks.length;
             String[] toDelete = new String[length];
+            int incDirCount = 0;
             System.arraycopy(ds.getIncludedFiles(), 0, toDelete, 0, ds.getIncludedFilesCount());
             if (deleteDirs) {
                 System.arraycopy(ds.getIncludedDirectories(), 0, toDelete, ds.getIncludedFilesCount(),
                         ds.getIncludedDirsCount());
+                incDirCount = ds.getIncludedDirsCount();
             }
-            System.arraycopy(nonFollowedSymlinks, 0, toDelete, ds.getIncludedFilesCount() + ds.getIncludedDirsCount(),
+            System.arraycopy(nonFollowedSymlinks, 0, toDelete, ds.getIncludedFilesCount() + incDirCount,
                     nonFollowedSymlinks.length);
             for (String path : toDelete) {
                 if (deleteCommand != null) {
