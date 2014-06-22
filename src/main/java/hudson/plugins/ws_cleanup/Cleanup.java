@@ -75,18 +75,13 @@ class Cleanup implements FileCallable<Object> {
         if (deleteDirs) {
             length += ds.getIncludedDirsCount();
         }
-        final String[] nonFollowedSymlinks = ds.getNotFollowedSymlinks();
-        length += nonFollowedSymlinks.length;
+        
         String[] toDelete = new String[length];
-        int incDirCount = 0;
         System.arraycopy(ds.getIncludedFiles(), 0, toDelete, 0, ds.getIncludedFilesCount());
         if (deleteDirs) {
             System.arraycopy(ds.getIncludedDirectories(), 0, toDelete, ds.getIncludedFilesCount(),
                     ds.getIncludedDirsCount());
-            incDirCount = ds.getIncludedDirsCount();
         }
-        System.arraycopy(nonFollowedSymlinks, 0, toDelete, ds.getIncludedFilesCount() + incDirCount,
-                nonFollowedSymlinks.length);
         
         for (String path : toDelete) {
             if (deleteCommand != null) {
@@ -96,6 +91,18 @@ class Cleanup implements FileCallable<Object> {
                 Util.deleteRecursive(new File(f, path));
             }
         }
+        
+        //not followed symlinks are returned as absolute paths, needs to be removed separately
+        final String[] nonFollowedSymlinks = ds.getNotFollowedSymlinks();
+        for (String link : nonFollowedSymlinks) {
+            if (deleteCommand != null) {
+                List<String> cmdList = fixQuotesAndExpand((new File(link)).getPath());
+                doDelete(cmdList);
+            } else {
+                Util.deleteRecursive(new File(link));
+            }
+        }
+        
         return null;
     }
 
