@@ -32,7 +32,7 @@ class Cleanup implements FileCallable<Object> {
         this.deleteCommand = (command == null || command.isEmpty()) ? null : command;
 
         if (environment != null) { // allow slave environment to overwrite delete cmd
-            this.deleteCommand = environment.getEnvVars().expand(command);
+            this.deleteCommand = environment.getEnvVars().get(command);
         }
 
         if (patterns == null) { // if pattern is not set up, delete everything
