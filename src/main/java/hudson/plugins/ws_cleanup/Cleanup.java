@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.tools.ant.DirectoryScanner;
@@ -117,7 +118,7 @@ class Cleanup implements FileCallable<Object> {
     private List<String> fixQuotesAndExpand(String fullPath) {
         String tempCommand = null;
         if (deleteCommand.contains("%s")) {
-            tempCommand = deleteCommand.replaceAll("%s", "\"" + StringEscapeUtils.escapeJava(fullPath) + "\"");
+            tempCommand = deleteCommand.replaceAll("%s", "\"" + Matcher.quoteReplacement(fullPath) + "\"");
         } else {
             tempCommand = deleteCommand + " " + fullPath;
         }
