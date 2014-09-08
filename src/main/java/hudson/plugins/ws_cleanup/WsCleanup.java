@@ -159,15 +159,8 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
         		listener.getLogger().append("Skipped based on build state " + build.getResult() + "\n\n");
         		return true;
         	}
-            if ((patterns == null || patterns.isEmpty()) && (externalDelete == null || externalDelete.isEmpty())) {
-                workspace.deleteRecursive();
-            } else {
-                workspace.act(
-                        new Cleanup(
-                            patterns,
-                            deleteDirs, build.getBuiltOn().getNodeProperties().get(
-                                EnvironmentVariablesNodeProperty.class), externalDelete, listener));
-            }
+        	RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener, build);
+        	cleaner.perform(workspace);
             listener.getLogger().append("done\n\n");
         } catch (Exception ex) {
             Logger.getLogger(WsCleanup.class.getName()).log(Level.SEVERE, null, ex);

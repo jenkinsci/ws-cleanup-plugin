@@ -36,12 +36,20 @@ import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
+import hudson.model.ParametersAction;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.model.StringParameterDefinition;
+import hudson.model.StringParameterValue;
+import hudson.slaves.DumbSlave;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.Shell;
 
+import java.beans.FeatureDescriptor;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Future;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -102,6 +110,36 @@ public class CleanupTest {
         assertWorkspaceCleanedUp(p.getItem("name=b").getLastBuild());
     }
 
+    @Test
+    public void workspaceShouldNotBeManipulated() throws Exception {
+        final int ITERATIONS = 50;
+
+        FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
+        p.addProperty(new ParametersDefinitionProperty(new StringParameterDefinition("RAND", "")));
+        p.setConcurrentBuild(true);
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false, null, null));
+        p.getPublishersList().add(wipeoutPublisher());
+        p.getBuildersList().add(new Shell(
+                "echo =$BUILD_NUMBER= > marker;" +
+                // Something hopefully expensive to delete
+                "mkdir -p a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z/a/b/c/d/e/f/g/h/j/k/l/m/n/o/p/q/r/s//u/v/w/x/y/z/" +
+                "sleep $(($BUILD_NUMBER%5));" +
+                "grep =$BUILD_NUMBER= marker"
+        ));
+
+        final List<Future<FreeStyleBuild>> futureBuilds = new ArrayList<Future<FreeStyleBuild>>(ITERATIONS);
+
+        for (int i = 0; i < ITERATIONS; i++) {
+            futureBuilds.add(p.scheduleBuild2(0, null, new ParametersAction(
+                    new StringParameterValue("RAND", Integer.toString(i))
+            )));
+        }
+
+        for (Future<FreeStyleBuild> fb: futureBuilds) {
+            j.assertBuildStatusSuccess(fb.get());
+        }
+    }
+
     private WsCleanup wipeoutPublisher() {
         return new WsCleanup(Collections.<Pattern>emptyList(), false,
                 true, true, true, true, true, true, true, // run always
@@ -134,13 +172,9 @@ public class CleanupTest {
         @Override
         public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
             build.getWorkspace().child("content.txt").touch(0);
-            listener.error(build.getWorkspace().toURI().toString());
-            listener.error(build.getWorkspace().list().toString());
             if (build instanceof MatrixRun) {
                 MatrixBuild mb = ((MatrixRun) build).getParentBuild();
                 mb.getWorkspace().child("content.txt").touch(0);
-                listener.error(mb.getWorkspace().toURI().toString());
-                listener.error(mb.getWorkspace().list().toString());
             }
 
             return new Environment() {};

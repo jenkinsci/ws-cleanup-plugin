@@ -1,6 +1,7 @@
 package hudson.plugins.ws_cleanup;
 
 import hudson.FilePath.FileCallable;
+import hudson.FilePath;
 import hudson.Util;
 import hudson.model.BuildListener;
 import hudson.plugins.ws_cleanup.Pattern.PatternType;
@@ -16,7 +17,10 @@ import java.util.regex.Matcher;
 
 import org.apache.tools.ant.DirectoryScanner;
 
-class Cleanup implements FileCallable<Object> {
+/**
+ * Perform configured cleanup on remote directory.
+ */
+class Cleanup extends RemoteCleaner implements FileCallable<Object> {
 
     private List<Pattern> patterns;
     private final boolean deleteDirs;
@@ -144,5 +148,10 @@ class Cleanup implements FileCallable<Object> {
     private void doDelete(List<String> cmdList) throws IOException, InterruptedException {
         Process deletProc = new ProcessBuilder(cmdList).start();
         deletProc.waitFor();
+    }
+
+    @Override
+    protected void perform(FilePath workspace) throws IOException, InterruptedException {
+        workspace.act(this);
     }
 }

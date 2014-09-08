@@ -81,6 +81,7 @@ public class PreBuildCleanup extends BuildWrapper {
 		FilePath ws = build.getWorkspace();
                
 		if (ws != null) {
+		    RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener, build);
 			try {
 				// Retry the operation a couple of times,
 				int retry = 3;
@@ -88,13 +89,8 @@ public class PreBuildCleanup extends BuildWrapper {
 					try {
 						if (!ws.exists())
 							return;
-						if ((patterns == null || patterns.isEmpty()) && (externalDelete == null || externalDelete.isEmpty())) {
-						    ws.deleteRecursive();
-						} else {
-							ws.act(new Cleanup(patterns,deleteDirs, build.getBuiltOn().getNodeProperties().get(
-                                EnvironmentVariablesNodeProperty.class), externalDelete, listener));
-						}
 
+						cleaner.perform(ws);
 						listener.getLogger().append("done\n\n");
 						break;
 					} catch (IOException e) {
@@ -103,10 +99,11 @@ public class PreBuildCleanup extends BuildWrapper {
 							// Swallow the I/O exception and retry in a few seconds.
 							Thread.sleep(3000);
 						} else {
-							listener.getLogger().append("Cannot delete workspace: " + e.getCause() + "\n");
-							Logger.getLogger(PreBuildCleanup.class.getName()).log(Level.SEVERE, null, e);
+							listener.getLogger().append("Cannot delete workspace: " + e.getMessage() + "\n");
+							Logger.getLogger(PreBuildCleanup.class.getName()).log(Level.SEVERE, "Cannot delete workspace", e);
 							e.printStackTrace();
-							throw new AbortException("Cannot delete workspace: " + e.getCause());
+
+							throw new AbortException("Cannot delete workspace: " + e.getMessage());
 						}
 					}
 				}
