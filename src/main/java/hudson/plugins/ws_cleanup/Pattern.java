@@ -45,7 +45,8 @@ public class Pattern implements Serializable, Describable<Pattern>{
 	@Extension
     public static final class DescriptorImpl extends Descriptor<Pattern>{
 
-    	public String getDisplayName(){
+        @Override
+        public String getDisplayName(){
     		return "Directory scanner pattern";
     	}
     	
@@ -55,7 +56,6 @@ public class Pattern implements Serializable, Describable<Pattern>{
     		model.add("Exclude",PatternType.EXCLUDE.toString());
     		return model;
     	}
-
 	}
     
     public enum PatternType{

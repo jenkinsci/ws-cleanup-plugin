@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.tools.ant.DirectoryScanner;
 
 class Cleanup implements FileCallable<Object> {
@@ -29,7 +28,7 @@ class Cleanup implements FileCallable<Object> {
 
         this.deleteDirs = deleteDirs;
         this.listener = listener;
-        this.patterns = (patterns == null) ? (List<Pattern>)Collections.EMPTY_LIST : patterns;
+        this.patterns = (patterns == null) ? Collections.<Pattern>emptyList() : patterns;
         this.deleteCommand = (command == null || command.isEmpty()) ? null : command;
 
         if (environment != null && deleteCommand != null) { // allow slave environment to overwrite delete cmd

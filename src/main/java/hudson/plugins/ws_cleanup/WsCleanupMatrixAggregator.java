@@ -41,7 +41,8 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
         this.externalDelete = externalDelete;
     }
 	
-	public boolean endBuild() throws InterruptedException, IOException {
+    @Override
+    public boolean endBuild() throws InterruptedException, IOException {
 		return doWorkspaceCleanup();
     }
 
@@ -116,5 +117,4 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
         }
         return true;
 	}
-
 }

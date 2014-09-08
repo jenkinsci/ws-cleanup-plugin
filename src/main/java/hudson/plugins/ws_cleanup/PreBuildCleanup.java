@@ -59,10 +59,10 @@ public class PreBuildCleanup extends BuildWrapper {
 	}
 
 	
-	 @Override 
-	 public Environment setUp( AbstractBuild build, Launcher launcher, BuildListener listener ) throws IOException, InterruptedException{ 
-		 return new NoopEnv();
-	 }
+	@Override
+	public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+		return new NoopEnv();
+	}
 
 	@Override
 	public void preCheckout(AbstractBuild build, Launcher launcher,
@@ -86,12 +86,12 @@ public class PreBuildCleanup extends BuildWrapper {
 				int retry = 3;
 				while (true) {
 					try {
-						if (ws == null || !ws.exists())
+						if (!ws.exists())
 							return;
 						if ((patterns == null || patterns.isEmpty()) && (externalDelete == null || externalDelete.isEmpty())) {
 						    ws.deleteRecursive();
 						} else {
-							build.getWorkspace().act(new Cleanup(patterns,deleteDirs, build.getBuiltOn().getNodeProperties().get(
+							ws.act(new Cleanup(patterns,deleteDirs, build.getBuiltOn().getNodeProperties().get(
                                 EnvironmentVariablesNodeProperty.class), externalDelete, listener));
 						}
 
@@ -120,6 +120,7 @@ public class PreBuildCleanup extends BuildWrapper {
 	@Extension(ordinal=9999)
 	public static final class DescriptorImpl extends Descriptor<BuildWrapper> {
 
+		@Override
 		public String getDisplayName() {
 			return Messages.PreBuildCleanup_Delete_workspace();
 		}
@@ -128,6 +129,4 @@ public class PreBuildCleanup extends BuildWrapper {
 
 	class NoopEnv extends Environment{
 	}
-	 
-
 }
