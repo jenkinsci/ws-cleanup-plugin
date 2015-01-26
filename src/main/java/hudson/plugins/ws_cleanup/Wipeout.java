@@ -60,16 +60,23 @@ import hudson.remoting.VirtualChannel;
                     "Cleaning workspace synchronously. Failed to rename {0} to {1}.",
                     new Object[] { workspace.getRemote(), deleteMe.getName() }
             );
-            workspace.act(COMMAND);
+            workspace.deleteRecursive();
         }
 
         deleteMe.actAsync(COMMAND);
     }
 
     private final static Command COMMAND = new Command();
-    private final static class Command implements FileCallable<Object> {
-        public Object invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-            Util.deleteRecursive(f);
+    private final static class Command implements FileCallable<Void> {
+        public Void invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
+            try {
+                Util.deleteRecursive(f);
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, "Unable to delete workspace", ex);
+            }
+            if (f.exists()) {
+                LOGGER.log(Level.SEVERE, "Workspace not deleted successfully: " + f.getAbsolutePath());
+            }
             return null;
         }
     }
