@@ -10,7 +10,7 @@
   <artifactId>ws-cleanup</artifactId>
   <packaging>hpi</packaging>
   <name>Jenkins Workspace Cleanup Plugin</name>
-  <version>0.25-SNAPSHOT</version>
+  <version>0.25</version>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/Workspace+Cleanup+Plugin</url>
 
   <developers>
@@ -24,7 +24,7 @@
     <connection>scm:git:git://github.com/jenkinsci/ws-cleanup-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/ws-cleanup-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/ws-cleanup-plugin</url>
-    <tag>HEAD</tag>
+    <tag>ws-cleanup-0.25</tag>
   </scm>
 
   <repositories>
