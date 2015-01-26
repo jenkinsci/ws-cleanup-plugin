@@ -25,7 +25,9 @@ package hudson.plugins.ws_cleanup;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 import hudson.FilePath;
+import hudson.Functions;
 import hudson.Launcher;
 import hudson.matrix.AxisList;
 import hudson.matrix.MatrixRun;
@@ -51,6 +53,7 @@ import java.util.concurrent.Future;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.Bug;
 import org.jvnet.hudson.test.JenkinsRule;
 
 public class CleanupTest {
@@ -150,6 +153,24 @@ public class CleanupTest {
         assertWorkspaceCleanedUp(build);
     }
 
+    @Test @Bug(26250)
+    public void doNotFailToWipeoutWhenRenameFails() throws Exception {
+        assumeTrue(!Functions.isWindows()); // chmod does not work here
+
+        FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
+        populateWorkspace(p, "content.txt");
+        p.getPublishersList().add(wipeoutPublisher());
+
+        FilePath workspace = p.getLastBuild().getWorkspace();
+        workspace.getParent().chmod(0555); // Remove write for parent dir so rename will fail
+
+        workspace.renameTo(workspace.withSuffix("2"));
+        assertTrue("Rename operation should fail", workspace.exists());
+
+        FreeStyleBuild build = j.buildAndAssertSuccess(p);
+        assertWorkspaceCleanedUp(build);
+    }
+
     private WsCleanup wipeoutPublisher() {
         return new WsCleanup(Collections.<Pattern>emptyList(), false,
                 true, true, true, true, true, true, true, // run always
@@ -163,7 +184,7 @@ public class CleanupTest {
         assertFalse("Workspace populated", b.getWorkspace().list().isEmpty());
     }
 
-    private void assertWorkspaceCleanedUp(AbstractBuild b) throws Exception {
+    private void assertWorkspaceCleanedUp(AbstractBuild<?, ?> b) throws Exception {
         final FilePath workspace = b.getWorkspace();
         if (workspace == null) return; // removed
 

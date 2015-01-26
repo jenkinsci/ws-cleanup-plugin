@@ -25,6 +25,8 @@ package hudson.plugins.ws_cleanup;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import hudson.FilePath;
 import hudson.FilePath.FileCallable;
@@ -51,6 +53,16 @@ import hudson.remoting.VirtualChannel;
     protected void perform(FilePath workspace) throws IOException, InterruptedException {
         final FilePath deleteMe = workspace.withSuffix("_ws-cleanup_" + System.currentTimeMillis());
         workspace.renameTo(deleteMe);
+
+        if (!deleteMe.exists()) {
+            LOGGER.log(
+                    Level.WARNING,
+                    "Cleaning workspace synchronously. Failed to rename {0} to {1}.",
+                    new Object[] { workspace.getRemote(), deleteMe.getName() }
+            );
+            workspace.act(COMMAND);
+        }
+
         deleteMe.actAsync(COMMAND);
     }
 
@@ -61,4 +73,6 @@ import hudson.remoting.VirtualChannel;
             return null;
         }
     }
+
+    private static final Logger LOGGER = Logger.getLogger(Wipeout.class.getName());
 }
