@@ -40,11 +40,9 @@ import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.StringParameterDefinition;
 import hudson.model.StringParameterValue;
-import hudson.slaves.DumbSlave;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.Shell;
 
-import java.beans.FeatureDescriptor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -138,6 +136,18 @@ public class CleanupTest {
         for (Future<FreeStyleBuild> fb: futureBuilds) {
             j.assertBuildStatusSuccess(fb.get());
         }
+    }
+
+    @Test
+    public void deleteWorkspaceWithNonAsciiCharacters() throws Exception {
+        FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
+        p.getBuildersList().add(new Shell("touch a¶‱ﻷ.txt"));
+
+        p.getPublishersList().add(wipeoutPublisher());
+
+        FreeStyleBuild build = j.buildAndAssertSuccess(p);
+
+        assertWorkspaceCleanedUp(build);
     }
 
     private WsCleanup wipeoutPublisher() {
