@@ -8,8 +8,6 @@ import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.Descriptor;
 import hudson.tasks.BuildWrapper;
-import hudson.EnvVars;
-import hudson.slaves.EnvironmentVariablesNodeProperty;
 
 import java.io.IOException;
 import java.util.List;
@@ -23,6 +21,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
  *
  */
 public class PreBuildCleanup extends BuildWrapper {
+
+	private static final Logger LOGGER = Logger.getLogger(PreBuildCleanup.class.getName());
 
 	private final List<Pattern> patterns;
 	private final boolean deleteDirs;
@@ -100,16 +100,14 @@ public class PreBuildCleanup extends BuildWrapper {
 							Thread.sleep(3000);
 						} else {
 							listener.getLogger().append("Cannot delete workspace: " + e.getMessage() + "\n");
-							Logger.getLogger(PreBuildCleanup.class.getName()).log(Level.SEVERE, "Cannot delete workspace", e);
-							e.printStackTrace();
+							LOGGER.log(Level.SEVERE, "Cannot delete workspace", e);
 
 							throw new AbortException("Cannot delete workspace: " + e.getMessage());
 						}
 					}
 				}
 			} catch(InterruptedException e) {
-				Logger.getLogger(PreBuildCleanup.class.getName()).log(Level.SEVERE, null, e);
-				e.printStackTrace();
+				LOGGER.log(Level.SEVERE, "Cleanup interrupted", e);
 			}
 		}
 	}
