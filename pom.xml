@@ -18,6 +18,10 @@
       <id>vjuranek</id>
       <name>Vojtech Juranek</name>
     </developer>
+    <developer>
+      <id>olivergondza</id>
+      <name>Oliver Gondža</name>
+    </developer>
   </developers>
 
   <scm>
