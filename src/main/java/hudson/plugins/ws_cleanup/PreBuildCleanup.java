@@ -72,7 +72,7 @@ public class PreBuildCleanup extends BuildWrapper {
 		if (cleanupParameter != null && !cleanupParameter.isEmpty()) {
 			Boolean doCleanup = new Boolean((String)build.getBuildVariables().get(this.cleanupParameter));
 			if (!doCleanup) {
-				listener.getLogger().println("[WS-CLEANUP] Clean-up disabled, skipping deletion of workspace.");
+				listener.getLogger().println("[WS-CLEANUP] Clean-up disabled, skipping workspace deletion.");
 				return;
 			}
 		}
