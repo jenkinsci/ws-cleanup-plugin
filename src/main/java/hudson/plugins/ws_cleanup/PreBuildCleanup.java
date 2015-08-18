@@ -72,15 +72,15 @@ public class PreBuildCleanup extends BuildWrapper {
 		if (cleanupParameter != null && !cleanupParameter.isEmpty()) {
 			Boolean doCleanup = new Boolean((String)build.getBuildVariables().get(this.cleanupParameter));
 			if (!doCleanup) {
-				listener.getLogger().println("[WS-CLEANUP] Clean-up disabled, skipping workspace deletion.");
+				listener.getLogger().println(WsCleanup.LOG_PREFIX + "Clean-up disabled, skipping workspace deletion.");
 				return;
 			}
 		}
 
-		listener.getLogger().println("[WS-CLEANUP] Deleting project workspace...");
 		FilePath ws = build.getWorkspace();
                
 		if (ws != null) {
+		    listener.getLogger().println(WsCleanup.LOG_PREFIX + "Deleting project workspace...");
 		    RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener, build);
 			try {
 				// Retry the operation a couple of times,
@@ -92,7 +92,7 @@ public class PreBuildCleanup extends BuildWrapper {
 						}
 
 						cleaner.perform(ws);
-						listener.getLogger().append(" Done\n");
+						listener.getLogger().println(WsCleanup.LOG_PREFIX + "Done");
 						break;
 					} catch (IOException e) {
 						retry -= 1;
@@ -100,7 +100,7 @@ public class PreBuildCleanup extends BuildWrapper {
 							// Swallow the I/O exception and retry in a few seconds.
 							Thread.sleep(3000);
 						} else {
-							listener.error("[WS-CLEANUP] Cannot delete workspace: " + e.getMessage());
+							listener.error(WsCleanup.LOG_PREFIX + "Cannot delete workspace: " + e.getMessage());
 							LOGGER.log(Level.SEVERE, "Cannot delete workspace", e);
 							throw new AbortException("Cannot delete workspace: " + e.getMessage());
 						}

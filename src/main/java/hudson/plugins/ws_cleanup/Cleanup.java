@@ -86,7 +86,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
             System.arraycopy(ds.getIncludedDirectories(), 0, toDelete, ds.getIncludedFilesCount(),
                     ds.getIncludedDirsCount());
         }
-        
+
         for (String path : toDelete) {
             if (deleteCommand != null) {
                 List<String> cmdList = fixQuotesAndExpand((new File(f, path)).getPath());
@@ -141,7 +141,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
             finalCmd.append(" ");
         }
 
-        this.listener.getLogger().println(finalCmd.toString());
+        this.listener.getLogger().println(WsCleanup.LOG_PREFIX + finalCmd.toString());
         return cmdList;
     }
 

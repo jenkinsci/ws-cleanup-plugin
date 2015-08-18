@@ -33,6 +33,8 @@ import org.kohsuke.stapler.StaplerRequest;
  */
 public class WsCleanup extends Notifier implements MatrixAggregatable {
 
+    public static final String LOG_PREFIX = "[WS-CLEANUP] ";
+
     private final List<Pattern> patterns;
     private final boolean deleteDirs;
 
@@ -150,18 +152,18 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
         
 	@Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        listener.getLogger().append("\nDeleting project workspace... \n");
         FilePath workspace = build.getWorkspace();
         try {
-        	if (workspace == null || !workspace.exists()) 
+            if (workspace == null || !workspace.exists())
                 return true;
-        	if(!shouldCleanBuildBasedOnState(build.getResult())) {
-        		listener.getLogger().append("Skipped based on build state " + build.getResult() + "\n\n");
-        		return true;
-        	}
-        	RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener, build);
-        	cleaner.perform(workspace);
-            listener.getLogger().append("done\n\n");
+            listener.getLogger().append(WsCleanup.LOG_PREFIX + "Deleting project workspace...");
+            if(!shouldCleanBuildBasedOnState(build.getResult())) {
+                listener.getLogger().println(WsCleanup.LOG_PREFIX + "Skipped based on build state " + build.getResult());
+                return true;
+            }
+            RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener, build);
+            cleaner.perform(workspace);
+            listener.getLogger().println(WsCleanup.LOG_PREFIX + "done");
         } catch (Exception ex) {
             Logger.getLogger(WsCleanup.class.getName()).log(Level.SEVERE, null, ex);
             if(notFailBuild) {
