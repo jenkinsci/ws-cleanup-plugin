@@ -171,6 +171,30 @@ public class CleanupTest {
         assertWorkspaceCleanedUp(build);
     }
 
+    @Test
+    public void reportCleanupCommandFailure() throws Exception {
+        String command = "mkdir %s";
+
+        FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
+        FilePath ws = j.buildAndAssertSuccess(p).getWorkspace();
+        FilePath pre = ws.child("pre-build");
+        pre.touch(0);
+        FilePath post = ws.child("post-build");
+        post.touch(0);
+
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false, null, command));
+        p.getPublishersList().add(new WsCleanup(
+                Collections.<Pattern>emptyList(), false, true, true, true, true, true, true, true, command
+        ));
+
+        FreeStyleBuild build = j.buildAndAssertSuccess(p);
+        String log = build.getLog();
+
+        assertTrue(log, log.contains("ERROR: Cleanup command failed with code 1"));
+        assertTrue(log, log.contains("mkdir: cannot create directory ‘" + pre.getRemote() + "’: File exists"));
+        assertTrue(log, log.contains("mkdir: cannot create directory ‘" + post.getRemote() + "’: File exists"));
+    }
+
     private WsCleanup wipeoutPublisher() {
         return new WsCleanup(Collections.<Pattern>emptyList(), false,
                 true, true, true, true, true, true, true, // run always

@@ -7,9 +7,11 @@ import hudson.model.BuildListener;
 import hudson.plugins.ws_cleanup.Pattern.PatternType;
 import hudson.remoting.VirtualChannel;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
+import hudson.util.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -147,7 +149,16 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
 
     private void doDelete(List<String> cmdList) throws IOException, InterruptedException {
         Process deletProc = new ProcessBuilder(cmdList).start();
-        deletProc.waitFor();
+        int exit = deletProc.waitFor();
+        if (exit != 0) {
+            listener.error("Cleanup command failed with code %d:", exit);
+            InputStream err = deletProc.getErrorStream();
+            try {
+                Util.copyStream(err, listener.getLogger());
+            } finally {
+                IOUtils.closeQuietly(err);
+            }
+        }
     }
 
     @Override
