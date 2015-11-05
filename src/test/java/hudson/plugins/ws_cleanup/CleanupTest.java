@@ -26,6 +26,8 @@ package hudson.plugins.ws_cleanup;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
 import hudson.FilePath;
 import hudson.Functions;
 import hudson.Launcher;
@@ -72,7 +74,7 @@ public class CleanupTest {
         FreeStyleBuild b = j.buildAndAssertSuccess(p);
 
         final String log = b.getLog();
-        assertTrue(log, log.contains(
+        assertThat(log, containsString(
                 "Using command: rm " + b.getWorkspace().getRemote() + "/" + filename
         ));
     }
@@ -190,9 +192,9 @@ public class CleanupTest {
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
         String log = build.getLog();
 
-        assertTrue(log, log.contains("ERROR: Cleanup command failed with code 1"));
-        assertTrue(log, log.contains("mkdir: cannot create directory ‘" + pre.getRemote() + "’: File exists"));
-        assertTrue(log, log.contains("mkdir: cannot create directory ‘" + post.getRemote() + "’: File exists"));
+        assertThat(log, containsString("ERROR: Cleanup command failed with code 1"));
+        assertThat(log, containsString("mkdir: cannot create directory ‘" + pre.getRemote() + "’: File exists"));
+        assertThat(log, containsString("mkdir: cannot create directory ‘" + post.getRemote() + "’: File exists"));
     }
 
     private WsCleanup wipeoutPublisher() {

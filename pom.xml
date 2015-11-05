@@ -6,7 +6,7 @@
     <artifactId>plugin</artifactId>
     <version>1.447</version>
   </parent>
-  
+
   <artifactId>ws-cleanup</artifactId>
   <packaging>hpi</packaging>
   <name>Jenkins Workspace Cleanup Plugin</name>
@@ -31,6 +31,15 @@
     <tag>HEAD</tag>
   </scm>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+      <version>1.2.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
   <repositories>
     <repository>
             <id>repo.jenkins-ci.org</id>
@@ -52,5 +61,5 @@
             <url>http://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
-</project>  
+</project>
 
