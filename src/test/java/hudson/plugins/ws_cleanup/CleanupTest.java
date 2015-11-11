@@ -187,10 +187,10 @@ public class CleanupTest {
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
         String log = build.getLog();
 
-        assertThat(log, containsString("ERROR: Cleanup command `mkdir " + pre.getRemote() + "' failed with code 1"));
-        assertThat(log, containsString("ERROR: Cleanup command `mkdir " + post.getRemote() + "' failed with code 1"));
-        assertThat(log, containsString("mkdir: cannot create directory ‘" + pre.getRemote() + "’: File exists"));
-        assertThat(log, containsString("mkdir: cannot create directory ‘" + post.getRemote() + "’: File exists"));
+        assertThat(log, containsString("ERROR: Cleanup command 'mkdir " + pre.getRemote() + "' failed with code 1"));
+        assertThat(log, containsString("ERROR: Cleanup command 'mkdir " + post.getRemote() + "' failed with code 1"));
+        assertThat(log, containsString("mkdir: cannot create directory"));
+        assertThat(log, containsString("File exists"));
     }
 
     private WsCleanup wipeoutPublisher() {
