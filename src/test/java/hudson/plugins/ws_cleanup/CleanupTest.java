@@ -55,7 +55,7 @@ import java.util.concurrent.Future;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.hudson.test.Bug;
+import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 
 public class CleanupTest {
@@ -65,16 +65,16 @@ public class CleanupTest {
     // "IllegalArgumentException: Illegal group reference" observed when filename contained '$';
     @Test
     public void doNotTreatFilenameAsRegexReplaceWhenUsingCustomCommand() throws Exception {
-        final String filename = "\\s! Dozen for 5$ only!";
+        final String filename = "\\s! Dozen for $5 only!";
 
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         populateWorkspace(p, filename);
 
         p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false, null, "rm %s"));
-        FreeStyleBuild b = j.buildAndAssertSuccess(p);
+        j.buildAndAssertSuccess(p);
     }
 
-    @Test
+    @Test @Issue("JENKINS-20056")
     public void wipeOutWholeWorkspaceBeforeBuild() throws Exception {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         populateWorkspace(p, "content.txt");
@@ -84,7 +84,7 @@ public class CleanupTest {
         assertWorkspaceCleanedUp(b);
     }
 
-    @Test
+    @Test @Issue("JENKINS-20056")
     public void wipeOutWholeWorkspaceAfterBuild() throws Exception {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         p.getBuildersList().add(new Shell("touch content.txt"));
@@ -94,7 +94,7 @@ public class CleanupTest {
         assertWorkspaceCleanedUp(b);
     }
 
-    @Test
+    @Test @Issue("JENKINS-20056")
     public void wipeOutWholeWorkspaceAfterBuildMatrix() throws Exception {
         MatrixProject p = j.jenkins.createProject(MatrixProject.class, "sut");
         p.setAxes(new AxisList(new TextAxis("name", "a b")));
@@ -108,7 +108,7 @@ public class CleanupTest {
         assertWorkspaceCleanedUp(p.getItem("name=b").getLastBuild());
     }
 
-    @Test
+    @Test @Issue("JENKINS-20056")
     public void workspaceShouldNotBeManipulated() throws Exception {
         final int ITERATIONS = 50;
 
@@ -150,7 +150,7 @@ public class CleanupTest {
         assertWorkspaceCleanedUp(build);
     }
 
-    @Test @Bug(26250)
+    @Test @Issue("JENKINS-26250")
     public void doNotFailToWipeoutWhenRenameFails() throws Exception {
         assumeTrue(!Functions.isWindows()); // chmod does not work here
 
