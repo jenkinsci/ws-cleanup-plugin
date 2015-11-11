@@ -130,20 +130,14 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         List<String> cmdList = new ArrayList<String>();
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\"([^\"]+)\"|(\\S+)");
         java.util.regex.Matcher m = p.matcher(tempCommand);
-        StringBuilder finalCmd = new StringBuilder("Using command: ");
         while (m.find()) {
             if (m.group(1) != null) {
                 cmdList.add(m.group(1));
-                finalCmd.append(m.group(1));
             }
             if (m.group(2) != null) {
                 cmdList.add(m.group(2));
-                finalCmd.append(m.group(2));
             }
-            finalCmd.append(" ");
         }
-
-        this.listener.getLogger().println(WsCleanup.LOG_PREFIX + finalCmd.toString());
         return cmdList;
     }
 
@@ -151,7 +145,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         Process deletProc = new ProcessBuilder(cmdList).start();
         int exit = deletProc.waitFor();
         if (exit != 0) {
-            listener.error("Cleanup command failed with code %d:", exit);
+            listener.error("Cleanup command `%s' failed with code %d:", Util.join(cmdList, " "), exit);
             InputStream err = deletProc.getErrorStream();
             try {
                 Util.copyStream(err, listener.getLogger());
