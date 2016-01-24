@@ -49,11 +49,12 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
     private final boolean notFailBuild;
     private final boolean cleanupMatrixParent;
     private final String externalDelete;
+    private final boolean cleanAsynchronously;
 
     @DataBoundConstructor
     // FIXME can't get repeteable to work with a List<String>
     public WsCleanup(List<Pattern> patterns, boolean deleteDirs, final boolean cleanWhenSuccess, final boolean cleanWhenUnstable, final boolean cleanWhenFailure,
-                     final boolean cleanWhenNotBuilt, final boolean cleanWhenAborted, final boolean notFailBuild, final boolean cleanupMatrixParent, final String externalDelete) {
+                     final boolean cleanWhenNotBuilt, final boolean cleanWhenAborted, final boolean notFailBuild, final boolean cleanupMatrixParent, final String externalDelete, final boolean cleanAsynchronously) {
         this.patterns = patterns;
         this.deleteDirs = deleteDirs;
         this.notFailBuild = notFailBuild;
@@ -64,6 +65,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
         this.cleanWhenNotBuilt = cleanWhenNotBuilt;
         this.cleanWhenAborted = cleanWhenAborted;
         this.externalDelete = externalDelete;
+        this.cleanAsynchronously = cleanAsynchronously;
     }
 
     public Object readResolve(){
@@ -135,6 +137,10 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
         return this.externalDelete;
     }
 
+    public boolean isCleanAsynchronously() {
+        return cleanAsynchronously;
+    }
+
     private boolean shouldCleanBuildBasedOnState(Result result) {
         if(result.equals(Result.SUCCESS))
             return this.cleanWhenSuccess;
@@ -161,7 +167,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
                 listener.getLogger().println(WsCleanup.LOG_PREFIX + "Skipped based on build state " + build.getResult());
                 return true;
             }
-            RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener, build);
+            RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, cleanAsynchronously, listener, build);
             cleaner.perform(workspace);
             listener.getLogger().println(WsCleanup.LOG_PREFIX + "done");
         } catch (Exception ex) {
