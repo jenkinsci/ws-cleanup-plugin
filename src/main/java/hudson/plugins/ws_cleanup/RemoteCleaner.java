@@ -42,10 +42,11 @@ import java.util.List;
             List<Pattern> patterns,
             boolean deleteDirs,
             String externalDelete,
+            boolean cleanAsynchronously,
             BuildListener listener,
             AbstractBuild<?, ?> build
     ) {
-        boolean wipeout = (patterns == null || patterns.isEmpty())
+        boolean wipeout = cleanAsynchronously && (patterns == null || patterns.isEmpty())
                 && (externalDelete == null || externalDelete.isEmpty())
         ;
 

@@ -27,14 +27,14 @@ public class PreBuildCleanup extends BuildWrapper {
 	private final List<Pattern> patterns;
 	private final boolean deleteDirs;
 	private final String cleanupParameter;
-        private final String externalDelete;
+	private final String externalDelete;
 
 	@DataBoundConstructor
 	public PreBuildCleanup(List<Pattern> patterns, boolean deleteDirs, String cleanupParameter, String externalDelete) {
 		this.patterns = patterns;
 		this.deleteDirs = deleteDirs;
 		this.cleanupParameter = cleanupParameter;
-                this.externalDelete = externalDelete;
+		this.externalDelete = externalDelete;
 	}
 
 	public List<Pattern> getPatterns(){
@@ -49,7 +49,7 @@ public class PreBuildCleanup extends BuildWrapper {
 		return this.cleanupParameter;
 	}
 	
-        public String getExternalDelete() {
+    public String getExternalDelete() {
             return this.externalDelete;
         }
         
@@ -81,7 +81,7 @@ public class PreBuildCleanup extends BuildWrapper {
                
 		if (ws != null) {
 		    listener.getLogger().println(WsCleanup.LOG_PREFIX + "Deleting project workspace...");
-		    RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener, build);
+		    RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, false, listener, build);
 			try {
 				// Retry the operation a couple of times,
 				int retry = 3;
@@ -91,7 +91,11 @@ public class PreBuildCleanup extends BuildWrapper {
 							return;
 						}
 
-						cleaner.perform(ws);
+						if ((patterns == null || patterns.isEmpty()) && (externalDelete == null || externalDelete.isEmpty())) {
+							ws.deleteRecursive();
+						} else {
+							cleaner.perform(ws);
+						}
 						listener.getLogger().println(WsCleanup.LOG_PREFIX + "Done");
 						break;
 					} catch (IOException e) {

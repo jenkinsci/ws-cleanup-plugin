@@ -45,5 +45,8 @@ DEALINGS IN THE SOFTWARE. -->
         <f:entry title="${%External Deletion Command}" help="/plugin/ws-cleanup/help/externalDelete.html">
             <f:textbox field="externalDelete" />
         </f:entry>
+        <f:entry title="${%Clean asynchronously}" help="/plugin/ws-cleanup/help/cleanAsynchronously.html">
+            <f:checkbox field="cleanAsynchronously" checked="${it.cleanAsynchronously}" />
+        </f:entry>
     </f:advanced>
 </j:jelly>
