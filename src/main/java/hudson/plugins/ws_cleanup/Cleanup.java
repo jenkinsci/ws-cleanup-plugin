@@ -3,7 +3,7 @@ package hudson.plugins.ws_cleanup;
 import hudson.FilePath.FileCallable;
 import hudson.FilePath;
 import hudson.Util;
-import hudson.model.BuildListener;
+import hudson.model.TaskListener;
 import hudson.plugins.ws_cleanup.Pattern.PatternType;
 import hudson.remoting.VirtualChannel;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
@@ -28,10 +28,10 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
     private List<Pattern> patterns;
     private final boolean deleteDirs;
     private String deleteCommand = null;
-    private BuildListener listener = null;
+    private TaskListener listener = null;
 
     public Cleanup(List<Pattern> patterns, boolean deleteDirs, EnvironmentVariablesNodeProperty environment,
-            String command, BuildListener listener) {
+            String command, TaskListener listener) {
 
         this.deleteDirs = deleteDirs;
         this.listener = listener;

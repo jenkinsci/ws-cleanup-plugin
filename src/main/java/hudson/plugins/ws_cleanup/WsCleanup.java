@@ -10,28 +10,27 @@ import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
 import hudson.model.BuildListener;
 import hudson.model.Result;
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
-import hudson.slaves.EnvironmentVariablesNodeProperty;
+import jenkins.tasks.SimpleBuildStep;
+import net.sf.json.JSONObject;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.json.JSONObject;
-
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
-
 /**
  *
  * @author dvrzalik
  */
-public class WsCleanup extends Notifier implements MatrixAggregatable {
+public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBuildStep {
 
     public static final String LOG_PREFIX = "[WS-CLEANUP] ";
 
@@ -136,6 +135,10 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
     }
 
     private boolean shouldCleanBuildBasedOnState(Result result) {
+        if (result == null) {
+            // in case of Pipeline, the result may be null
+            return true;
+        }
         if(result.equals(Result.SUCCESS))
             return this.cleanWhenSuccess;
         if(result.equals(Result.UNSTABLE))
@@ -151,15 +154,14 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
     }
         
 	@Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        FilePath workspace = build.getWorkspace();
+    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
         try {
             if (workspace == null || !workspace.exists())
-                return true;
+                return;
             listener.getLogger().append(WsCleanup.LOG_PREFIX + "Deleting project workspace...");
             if(!shouldCleanBuildBasedOnState(build.getResult())) {
                 listener.getLogger().println(WsCleanup.LOG_PREFIX + "Skipped based on build state " + build.getResult());
-                return true;
+                return;
             }
             RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener, build);
             cleaner.perform(workspace);
@@ -169,12 +171,11 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
             if(notFailBuild) {
             	listener.getLogger().append("Cannot delete workspace: " + ex.getCause() + "\n");
             	listener.getLogger().append("Option not to fail the build is turned on, so let's continue\n");
-            	return true;
+            	return;
             }
             listener.getLogger().append("Cannot delete workspace :" + ex.getMessage() + "\n");
             throw new AbortException("Cannot delete workspace: " + ex.getMessage());
         }
-        return true;
     }
 
 	public MatrixAggregator createAggregator(MatrixBuild build, Launcher launcher, BuildListener listener) {
