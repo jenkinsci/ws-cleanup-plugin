@@ -38,6 +38,7 @@ import hudson.matrix.MatrixProject;
 import hudson.matrix.TextAxis;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Cause;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.ParametersAction;
@@ -128,7 +129,7 @@ public class CleanupTest {
         final List<Future<FreeStyleBuild>> futureBuilds = new ArrayList<Future<FreeStyleBuild>>(ITERATIONS);
 
         for (int i = 0; i < ITERATIONS; i++) {
-            futureBuilds.add(p.scheduleBuild2(0, null, new ParametersAction(
+            futureBuilds.add(p.scheduleBuild2(0, (Cause) null, new ParametersAction(
                     new StringParameterValue("RAND", Integer.toString(i))
             )));
         }

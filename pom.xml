@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.447</version>
+    <version>2.9</version>
   </parent>
 
   <artifactId>ws-cleanup</artifactId>
@@ -12,6 +12,11 @@
   <name>Jenkins Workspace Cleanup Plugin</name>
   <version>0.30-SNAPSHOT</version>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/Workspace+Cleanup+Plugin</url>
+
+  <properties>
+    <jenkins.version>1.580.1</jenkins.version>
+    <java.level>7</java.level>
+  </properties>
 
   <developers>
     <developer>
@@ -32,6 +37,11 @@
   </scm>
 
   <dependencies>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>matrix-project</artifactId>
+      <version>1.7.1</version>
+    </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-core</artifactId>

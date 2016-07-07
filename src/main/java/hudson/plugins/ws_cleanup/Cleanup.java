@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 import org.apache.tools.ant.DirectoryScanner;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  * Perform configured cleanup on remote directory.
@@ -158,5 +159,10 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
     @Override
     protected void perform(FilePath workspace) throws IOException, InterruptedException {
         workspace.act(this);
+    }
+
+    @Override
+    public void checkRoles(RoleChecker roleChecker) throws SecurityException {
+
     }
 }
