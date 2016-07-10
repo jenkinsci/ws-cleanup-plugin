@@ -16,6 +16,7 @@
   <properties>
     <jenkins.version>1.609</jenkins.version>
     <java.level>6</java.level>
+    <workflow.version>1.4.3</workflow.version>
   </properties>
 
   <developers>
@@ -52,6 +53,24 @@
       <groupId>org.jenkins-ci</groupId>
       <artifactId>test-annotations</artifactId>
       <version>1.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-job</artifactId>
+      <version>${workflow.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-cps</artifactId>
+      <version>${workflow.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-basic-steps</artifactId>
+      <version>${workflow.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

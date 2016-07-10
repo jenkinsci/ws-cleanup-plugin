@@ -24,9 +24,9 @@
 package hudson.plugins.ws_cleanup;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
-import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 import hudson.FilePath;
 import hudson.Functions;
@@ -48,20 +48,26 @@ import hudson.model.StringParameterValue;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.Shell;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
 
+import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 
 public class CleanupTest {
 
     @Rule public JenkinsRule j = new JenkinsRule();
+    @Rule public TemporaryFolder ws = new TemporaryFolder();
 
     // "IllegalArgumentException: Illegal group reference" observed when filename contained '$';
     @Test
@@ -192,6 +198,28 @@ public class CleanupTest {
         assertThat(log, containsString("ERROR: Cleanup command 'mkdir " + post.getRemote() + "' failed with code 1"));
         assertThat(log, containsString("mkdir: cannot create directory"));
         assertThat(log, containsString("File exists"));
+    }
+
+    @Test @Issue("JENKINS-28454")
+    public void wsCleanupForPipeline() throws Exception {
+        WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
+        p.setDefinition(new CpsFlowDefinition("" +
+                "node { \n" +
+                "  ws ('" + ws.getRoot() + "'){ \n" +
+                "    writeFile file: 'foo.txt', text: 'text' \n" +
+                "    writeFile file: 'bar.txt', text: 'text' \n" +
+                "    step([$class: 'WsCleanup', patterns: [[pattern: 'bar.*', type: 'INCLUDE']], cleanWhenAborted: true, cleanWhenFailure: true, cleanWhenNotBuilt: true, cleanWhenSuccess: true, cleanWhenUnstable: true, cleanupMatrixParent: false, deleteDirs: false, externalDelete: '', notFailBuild: false]) \n" +
+                "  } \n" +
+                "}"));
+        WorkflowRun build = p.scheduleBuild2(0).get();
+        j.assertBuildStatusSuccess(build);
+        j.assertLogContains("Deleting project workspace...", build);
+        j.assertLogContains("done", build);
+
+        File[] files = ws.getRoot().listFiles();
+        assertThat(files, notNullValue());
+        assertThat(files, arrayWithSize(1));
+        assertThat(files[0].getName(), is("foo.txt"));
     }
 
     private WsCleanup wipeoutPublisher() {
