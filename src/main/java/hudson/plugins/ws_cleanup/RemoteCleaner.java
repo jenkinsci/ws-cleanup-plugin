@@ -25,6 +25,7 @@ package hudson.plugins.ws_cleanup;
 
 import hudson.FilePath;
 import hudson.model.AbstractBuild;
+import hudson.model.Node;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
@@ -54,8 +55,10 @@ import java.util.List;
 
         EnvironmentVariablesNodeProperty properties = null;
         if (build instanceof AbstractBuild) {
-            properties = ((AbstractBuild) build).getBuiltOn()
-                    .getNodeProperties().get(EnvironmentVariablesNodeProperty.class);
+            Node node = ((AbstractBuild) build).getBuiltOn();
+            if (node != null) {
+                properties = node.getNodeProperties().get(EnvironmentVariablesNodeProperty.class);
+            }
         }
 
         return new Cleanup(patterns, deleteDirs, properties, externalDelete, listener);

@@ -5,6 +5,7 @@ import hudson.Launcher;
 import hudson.matrix.MatrixAggregator;
 import hudson.matrix.MatrixBuild;
 import hudson.model.BuildListener;
+import hudson.model.Node;
 import hudson.model.Result;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 
@@ -47,6 +48,8 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
     }
 
     private boolean shouldCleanBuildBasedOnState(Result result) {
+        if (result == null)
+            return true;
         if(result.equals(Result.SUCCESS))
             return this.cleanWhenSuccess;
         if(result.equals(Result.UNSTABLE))
@@ -102,8 +105,11 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
             if (patterns == null || patterns.isEmpty()) {
                 workspace.deleteRecursive();
             } else {
-                workspace.act(new Cleanup(patterns,deleteDirs, build.getBuiltOn().getNodeProperties().get(
-                                EnvironmentVariablesNodeProperty.class), externalDelete, listener));
+                Node node = build.getBuiltOn();
+                if (node != null) {
+                    workspace.act(new Cleanup(patterns,deleteDirs, node.getNodeProperties().get(
+                            EnvironmentVariablesNodeProperty.class), externalDelete, listener));
+                }
             }
             listener.getLogger().append("done\n\n");
         } catch (Exception ex) {

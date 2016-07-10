@@ -135,10 +135,9 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
     }
 
     private boolean shouldCleanBuildBasedOnState(Result result) {
-        if (result == null) {
+        if (result == null)
             // in case of Pipeline, the result may be null
             return true;
-        }
         if(result.equals(Result.SUCCESS))
             return this.cleanWhenSuccess;
         if(result.equals(Result.UNSTABLE))
