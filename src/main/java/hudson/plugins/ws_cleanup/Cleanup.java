@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 
+import jenkins.security.Roles;
 import org.apache.tools.ant.DirectoryScanner;
 import org.jenkinsci.remoting.RoleChecker;
 
@@ -162,7 +163,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
     }
 
     @Override
-    public void checkRoles(RoleChecker roleChecker) throws SecurityException {
-
+    public void checkRoles(RoleChecker checker) throws SecurityException {
+        checker.check(this, Roles.SLAVE);
     }
 }

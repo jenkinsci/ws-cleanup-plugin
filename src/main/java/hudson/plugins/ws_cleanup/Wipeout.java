@@ -32,6 +32,7 @@ import hudson.FilePath;
 import hudson.FilePath.FileCallable;
 import hudson.Util;
 import hudson.remoting.VirtualChannel;
+import jenkins.security.Roles;
 import org.jenkinsci.remoting.RoleChecker;
 
 /**
@@ -82,8 +83,8 @@ import org.jenkinsci.remoting.RoleChecker;
         }
 
         @Override
-        public void checkRoles(RoleChecker roleChecker) throws SecurityException {
-
+        public void checkRoles(RoleChecker checker) throws SecurityException {
+            checker.check(this, Roles.SLAVE);
         }
     }
 
