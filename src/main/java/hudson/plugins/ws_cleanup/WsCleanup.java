@@ -18,10 +18,13 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,34 +37,78 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
 
     public static final String LOG_PREFIX = "[WS-CLEANUP] ";
 
-    private final List<Pattern> patterns;
-    private final boolean deleteDirs;
+    private List<Pattern> patterns = Collections.emptyList();
+    private boolean deleteDirs = false;
 
     @Deprecated
-    private boolean skipWhenFailed; // keep it for backward compatibility
-    private boolean cleanWhenSuccess;
-    private boolean cleanWhenUnstable;
-    private boolean cleanWhenFailure;
-    private boolean cleanWhenNotBuilt;
-    private boolean cleanWhenAborted;
+    private boolean skipWhenFailed = false; // keep it for backward compatibility
+    private boolean cleanWhenSuccess = true;
+    private boolean cleanWhenUnstable = true;
+    private boolean cleanWhenFailure = true;
+    private boolean cleanWhenNotBuilt = true;
+    private boolean cleanWhenAborted = true;
 
-    private final boolean notFailBuild;
-    private final boolean cleanupMatrixParent;
-    private final String externalDelete;
+    private boolean notFailBuild = false;
+    private boolean cleanupMatrixParent = false;
+    private String externalDelete = StringUtils.EMPTY;
 
     @DataBoundConstructor
+    public WsCleanup() {}
+
+    @DataBoundSetter
     // FIXME can't get repeteable to work with a List<String>
-    public WsCleanup(List<Pattern> patterns, boolean deleteDirs, final boolean cleanWhenSuccess, final boolean cleanWhenUnstable, final boolean cleanWhenFailure,
-                     final boolean cleanWhenNotBuilt, final boolean cleanWhenAborted, final boolean notFailBuild, final boolean cleanupMatrixParent, final String externalDelete) {
+    public void setPatterns(List<Pattern> patterns) {
         this.patterns = patterns;
+    }
+
+    @DataBoundSetter
+    public void setDeleteDirs(boolean deleteDirs) {
         this.deleteDirs = deleteDirs;
-        this.notFailBuild = notFailBuild;
-        this.cleanupMatrixParent = cleanupMatrixParent;
+    }
+
+    @Deprecated
+    @DataBoundSetter
+    public void setSkipWhenFailed(boolean skipWhenFailed) {
+        this.skipWhenFailed = skipWhenFailed;
+    }
+
+    @DataBoundSetter
+    public void setCleanWhenSuccess(boolean cleanWhenSuccess) {
         this.cleanWhenSuccess = cleanWhenSuccess;
+    }
+
+    @DataBoundSetter
+    public void setCleanWhenUnstable(boolean cleanWhenUnstable) {
         this.cleanWhenUnstable = cleanWhenUnstable;
+    }
+
+    @DataBoundSetter
+    public void setCleanWhenFailure(boolean cleanWhenFailure) {
         this.cleanWhenFailure = cleanWhenFailure;
+    }
+
+    @DataBoundSetter
+    public void setCleanWhenNotBuilt(boolean cleanWhenNotBuilt) {
         this.cleanWhenNotBuilt = cleanWhenNotBuilt;
+    }
+
+    @DataBoundSetter
+    public void setCleanWhenAborted(boolean cleanWhenAborted) {
         this.cleanWhenAborted = cleanWhenAborted;
+    }
+
+    @DataBoundSetter
+    public void setNotFailBuild(boolean notFailBuild) {
+        this.notFailBuild = notFailBuild;
+    }
+
+    @DataBoundSetter
+    public void setCleanupMatrixParent(boolean cleanupMatrixParent) {
+        this.cleanupMatrixParent = cleanupMatrixParent;
+    }
+
+    @DataBoundSetter
+    public void setExternalDelete(String externalDelete) {
         this.externalDelete = externalDelete;
     }
 
@@ -105,7 +152,12 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
     public boolean getNotFailBuild() {
     	return notFailBuild;
     }
-    
+
+    @Deprecated
+    public boolean isSkipWhenFailed() {
+        return skipWhenFailed;
+    }
+
     public boolean isCleanWhenSuccess() {
 		return cleanWhenSuccess;
 	}

@@ -187,9 +187,11 @@ public class CleanupTest {
         post.touch(0);
 
         p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false, null, command));
-        p.getPublishersList().add(new WsCleanup(
-                Collections.<Pattern>emptyList(), false, true, true, true, true, true, true, true, command
-        ));
+        WsCleanup wsCleanup = new WsCleanup();
+        wsCleanup.setNotFailBuild(true);
+        wsCleanup.setCleanupMatrixParent(true);
+        wsCleanup.setExternalDelete(command);
+        p.getPublishersList().add(wsCleanup);
 
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
         String log = build.getLog();
@@ -223,9 +225,11 @@ public class CleanupTest {
     }
 
     private WsCleanup wipeoutPublisher() {
-        return new WsCleanup(Collections.<Pattern>emptyList(), false,
-                true, true, true, true, true, true, true, // run always
-        null);
+        WsCleanup wsCleanup = new WsCleanup();
+        wsCleanup.setNotFailBuild(true);
+        wsCleanup.setCleanupMatrixParent(true);
+
+        return wsCleanup;
     }
 
     private void populateWorkspace(FreeStyleProject p, String filename) throws Exception {
