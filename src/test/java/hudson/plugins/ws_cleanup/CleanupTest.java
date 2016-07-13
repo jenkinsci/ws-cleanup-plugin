@@ -23,11 +23,13 @@
  */
 package hudson.plugins.ws_cleanup;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 import static org.hamcrest.Matchers.*;
+
 import hudson.FilePath;
 import hudson.Functions;
 import hudson.Launcher;
@@ -37,7 +39,11 @@ import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
 import hudson.matrix.TextAxis;
 import hudson.model.*;
+import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.BuildWrapper;
+import hudson.tasks.Notifier;
+import hudson.tasks.Publisher;
+import hudson.tasks.Recorder;
 import hudson.tasks.Shell;
 
 import java.io.File;
@@ -47,6 +53,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
 
+import hudson.util.DescribableList;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -55,6 +62,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.TestExtension;
 
 public class CleanupTest {
 
@@ -264,7 +272,7 @@ public class CleanupTest {
         assertThat(files[0].getName(), is("foo.txt"));
     }
 
-    private WsCleanup wipeoutPublisher() {
+    public static WsCleanup wipeoutPublisher() {
         WsCleanup wsCleanup = new WsCleanup();
         wsCleanup.setNotFailBuild(true);
         wsCleanup.setCleanupMatrixParent(true);

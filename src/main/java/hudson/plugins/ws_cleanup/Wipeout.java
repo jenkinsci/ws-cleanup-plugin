@@ -23,17 +23,19 @@
  */
 package hudson.plugins.ws_cleanup;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hudson.FilePath;
-import hudson.FilePath.FileCallable;
-import hudson.Util;
+import hudson.model.Computer;
 import hudson.remoting.VirtualChannel;
-import jenkins.security.Roles;
-import org.jenkinsci.remoting.RoleChecker;
+import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.resourcedisposer.AsyncResourceDisposer;
+import org.jenkinsci.plugins.resourcedisposer.Disposable;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 /**
  * Cleanup workspace wiping it out completely.
@@ -43,9 +45,9 @@ import org.jenkinsci.remoting.RoleChecker;
  *
  * @author ogondza
  */
-/*package*/ final class Wipeout extends RemoteCleaner {
+/*package final*/ class Wipeout extends RemoteCleaner {
 
-    private final static Wipeout INSTANCE = new Wipeout();
+    /*private final*/ static Wipeout INSTANCE = new Wipeout();
 
     /*package*/ static Wipeout getInstance() {
         return INSTANCE;
@@ -53,9 +55,14 @@ import org.jenkinsci.remoting.RoleChecker;
 
     @Override
     protected void perform(FilePath workspace) throws IOException, InterruptedException {
-        final FilePath deleteMe = workspace.withSuffix("_ws-cleanup_" + System.currentTimeMillis());
-        workspace.renameTo(deleteMe);
+        final FilePath deleteMe = getWipeoutWorkspace(workspace);
+        Computer computer =  workspace.toComputer();
+        if (computer == null) {
+            workspace.deleteRecursive();
+            return;
+        }
 
+        workspace.renameTo(deleteMe);
         if (!deleteMe.exists()) {
             LOGGER.log(
                     Level.WARNING,
@@ -63,28 +70,44 @@ import org.jenkinsci.remoting.RoleChecker;
                     new Object[] { workspace.getRemote(), deleteMe.getName() }
             );
             workspace.deleteRecursive();
+            return;
         }
 
-        deleteMe.actAsync(COMMAND);
+        AsyncResourceDisposer.get().dispose(new DisposableImpl(deleteMe));
     }
 
-    private final static Command COMMAND = new Command();
-    private final static class Command implements FileCallable<Void> {
-        public Void invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-            try {
-                Util.deleteRecursive(f);
-            } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, "Unable to delete workspace", ex);
-            }
-            if (f.exists()) {
-                LOGGER.log(Level.SEVERE, "Workspace not deleted successfully: " + f.getAbsolutePath());
-            }
-            return null;
+    /*package for testing*/ FilePath getWipeoutWorkspace(FilePath workspace) {
+        return workspace.withSuffix("_ws-cleanup_" + System.currentTimeMillis());
+    }
+
+    private final static class DisposableImpl implements Disposable {
+        private final String node;
+        private final String path;
+        private transient FilePath ws;
+
+        private DisposableImpl(FilePath ws) {
+            this.ws = ws;
+            this.node = ws.toComputer().getName();
+            this.path = ws.getRemote();
         }
 
-        @Override
-        public void checkRoles(RoleChecker checker) throws SecurityException {
-            checker.check(this, Roles.SLAVE);
+        @Nonnull public State dispose() throws Exception {
+            Jenkins j = Jenkins.getInstance();
+            if (j == null) return State.TO_DISPOSE; // Going down?
+
+            if (ws == null) {
+                ws = new FilePath(j.getComputer(node).getChannel(), path);
+            }
+            ws.deleteRecursive();
+
+            return ws.exists()
+                ? State.TO_DISPOSE // Failed to delete silently
+                : State.PURGED
+            ;
+        }
+
+        @Nonnull public String getDisplayName() {
+            return "Workspace " + (node.isEmpty() ? "master" : node) + ':' + path;
         }
     }
 
