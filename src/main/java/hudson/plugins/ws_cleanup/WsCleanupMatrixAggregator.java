@@ -9,6 +9,7 @@ import hudson.model.Node;
 import hudson.model.Result;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 
+import javax.annotation.CheckForNull;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
@@ -47,9 +48,10 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
 		return doWorkspaceCleanup();
     }
 
-    private boolean shouldCleanBuildBasedOnState(Result result) {
-        if (result == null)
+    private boolean shouldCleanBuildBasedOnState(@CheckForNull Result result) {
+        if (result == null) {
             return true;
+        }
         if(result.equals(Result.SUCCESS))
             return this.cleanWhenSuccess;
         if(result.equals(Result.UNSTABLE))

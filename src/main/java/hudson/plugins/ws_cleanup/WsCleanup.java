@@ -23,6 +23,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.annotation.CheckForNull;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -186,10 +187,11 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
         return this.externalDelete;
     }
 
-    private boolean shouldCleanBuildBasedOnState(Result result) {
-        if (result == null)
+    private boolean shouldCleanBuildBasedOnState(@CheckForNull Result result) {
+        if (result == null) {
             // in case of Pipeline, the result may be null
             return true;
+        }
         if(result.equals(Result.SUCCESS))
             return this.cleanWhenSuccess;
         if(result.equals(Result.UNSTABLE))
