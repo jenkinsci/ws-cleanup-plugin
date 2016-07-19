@@ -24,8 +24,10 @@
 package hudson.plugins.ws_cleanup;
 
 import hudson.FilePath;
-import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
+import hudson.model.Node;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 
 import java.io.IOException;
@@ -42,8 +44,8 @@ import java.util.List;
             List<Pattern> patterns,
             boolean deleteDirs,
             String externalDelete,
-            BuildListener listener,
-            AbstractBuild<?, ?> build
+            TaskListener listener,
+            Run<?, ?> build
     ) {
         boolean wipeout = (patterns == null || patterns.isEmpty())
                 && (externalDelete == null || externalDelete.isEmpty())
@@ -51,9 +53,13 @@ import java.util.List;
 
         if (wipeout) return Wipeout.getInstance();
 
-        final EnvironmentVariablesNodeProperty properties = build.getBuiltOn()
-                .getNodeProperties().get(EnvironmentVariablesNodeProperty.class)
-        ;
+        EnvironmentVariablesNodeProperty properties = null;
+        if (build instanceof AbstractBuild) {
+            Node node = ((AbstractBuild) build).getBuiltOn();
+            if (node != null) {
+                properties = node.getNodeProperties().get(EnvironmentVariablesNodeProperty.class);
+            }
+        }
 
         return new Cleanup(patterns, deleteDirs, properties, externalDelete, listener);
     }

@@ -32,6 +32,8 @@ import hudson.FilePath;
 import hudson.FilePath.FileCallable;
 import hudson.Util;
 import hudson.remoting.VirtualChannel;
+import jenkins.security.Roles;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  * Cleanup workspace wiping it out completely.
@@ -78,6 +80,11 @@ import hudson.remoting.VirtualChannel;
                 LOGGER.log(Level.SEVERE, "Workspace not deleted successfully: " + f.getAbsolutePath());
             }
             return null;
+        }
+
+        @Override
+        public void checkRoles(RoleChecker checker) throws SecurityException {
+            checker.check(this, Roles.SLAVE);
         }
     }
 

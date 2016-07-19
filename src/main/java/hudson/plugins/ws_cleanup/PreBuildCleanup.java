@@ -70,7 +70,7 @@ public class PreBuildCleanup extends BuildWrapper {
 
 		// Check if a cleanupParameter has been setup and skip cleaning workspace if set to false
 		if (cleanupParameter != null && !cleanupParameter.isEmpty()) {
-			Boolean doCleanup = new Boolean((String)build.getBuildVariables().get(this.cleanupParameter));
+			Boolean doCleanup = Boolean.valueOf((String) build.getBuildVariables().get(this.cleanupParameter));
 			if (!doCleanup) {
 				listener.getLogger().println(WsCleanup.LOG_PREFIX + "Clean-up disabled, skipping workspace deletion.");
 				return;

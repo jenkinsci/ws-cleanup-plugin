@@ -3,11 +3,11 @@ package hudson.plugins.ws_cleanup;
 import hudson.Extension;
 import hudson.model.Describable;
 import hudson.model.Descriptor;
-import hudson.model.Hudson;
 import hudson.util.ListBoxModel;
 
 import java.io.Serializable;
 
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -37,9 +37,10 @@ public class Pattern implements Serializable, Describable<Pattern>{
     public PatternType getType(){
     	return type;
     }
-    
-	public Descriptor<Pattern> getDescriptor() {
-		return Hudson.getInstance().getDescriptor(getClass());
+
+    @Override
+	public DescriptorImpl getDescriptor() {
+		return (DescriptorImpl) Jenkins.getActiveInstance().getDescriptor(getClass());
 	}
 	
 	@Extension

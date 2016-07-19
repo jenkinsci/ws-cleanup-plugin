@@ -10,59 +10,106 @@ import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
 import hudson.model.BuildListener;
 import hudson.model.Result;
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
-import hudson.slaves.EnvironmentVariablesNodeProperty;
+import jenkins.tasks.SimpleBuildStep;
+import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.StaplerRequest;
 
+import javax.annotation.CheckForNull;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import net.sf.json.JSONObject;
-
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
 
 /**
  *
  * @author dvrzalik
  */
-public class WsCleanup extends Notifier implements MatrixAggregatable {
+public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBuildStep {
 
     public static final String LOG_PREFIX = "[WS-CLEANUP] ";
 
-    private final List<Pattern> patterns;
-    private final boolean deleteDirs;
+    private List<Pattern> patterns = Collections.emptyList();
+    private boolean deleteDirs = false;
 
     @Deprecated
-    private boolean skipWhenFailed; // keep it for backward compatibility
-    private boolean cleanWhenSuccess;
-    private boolean cleanWhenUnstable;
-    private boolean cleanWhenFailure;
-    private boolean cleanWhenNotBuilt;
-    private boolean cleanWhenAborted;
+    private boolean skipWhenFailed = false; // keep it for backward compatibility
+    private boolean cleanWhenSuccess = true;
+    private boolean cleanWhenUnstable = true;
+    private boolean cleanWhenFailure = true;
+    private boolean cleanWhenNotBuilt = true;
+    private boolean cleanWhenAborted = true;
 
-    private final boolean notFailBuild;
-    private final boolean cleanupMatrixParent;
-    private final String externalDelete;
+    private boolean notFailBuild = false;
+    private boolean cleanupMatrixParent = false;
+    private String externalDelete = StringUtils.EMPTY;
 
     @DataBoundConstructor
+    public WsCleanup() {}
+
+    @DataBoundSetter
     // FIXME can't get repeteable to work with a List<String>
-    public WsCleanup(List<Pattern> patterns, boolean deleteDirs, final boolean cleanWhenSuccess, final boolean cleanWhenUnstable, final boolean cleanWhenFailure,
-                     final boolean cleanWhenNotBuilt, final boolean cleanWhenAborted, final boolean notFailBuild, final boolean cleanupMatrixParent, final String externalDelete) {
+    public void setPatterns(List<Pattern> patterns) {
         this.patterns = patterns;
+    }
+
+    @DataBoundSetter
+    public void setDeleteDirs(boolean deleteDirs) {
         this.deleteDirs = deleteDirs;
-        this.notFailBuild = notFailBuild;
-        this.cleanupMatrixParent = cleanupMatrixParent;
+    }
+
+    @Deprecated
+    @DataBoundSetter
+    public void setSkipWhenFailed(boolean skipWhenFailed) {
+        this.skipWhenFailed = skipWhenFailed;
+    }
+
+    @DataBoundSetter
+    public void setCleanWhenSuccess(boolean cleanWhenSuccess) {
         this.cleanWhenSuccess = cleanWhenSuccess;
+    }
+
+    @DataBoundSetter
+    public void setCleanWhenUnstable(boolean cleanWhenUnstable) {
         this.cleanWhenUnstable = cleanWhenUnstable;
+    }
+
+    @DataBoundSetter
+    public void setCleanWhenFailure(boolean cleanWhenFailure) {
         this.cleanWhenFailure = cleanWhenFailure;
+    }
+
+    @DataBoundSetter
+    public void setCleanWhenNotBuilt(boolean cleanWhenNotBuilt) {
         this.cleanWhenNotBuilt = cleanWhenNotBuilt;
+    }
+
+    @DataBoundSetter
+    public void setCleanWhenAborted(boolean cleanWhenAborted) {
         this.cleanWhenAborted = cleanWhenAborted;
+    }
+
+    @DataBoundSetter
+    public void setNotFailBuild(boolean notFailBuild) {
+        this.notFailBuild = notFailBuild;
+    }
+
+    @DataBoundSetter
+    public void setCleanupMatrixParent(boolean cleanupMatrixParent) {
+        this.cleanupMatrixParent = cleanupMatrixParent;
+    }
+
+    @DataBoundSetter
+    public void setExternalDelete(String externalDelete) {
         this.externalDelete = externalDelete;
     }
 
@@ -106,7 +153,12 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
     public boolean getNotFailBuild() {
     	return notFailBuild;
     }
-    
+
+    @Deprecated
+    public boolean isSkipWhenFailed() {
+        return skipWhenFailed;
+    }
+
     public boolean isCleanWhenSuccess() {
 		return cleanWhenSuccess;
 	}
@@ -135,7 +187,11 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
         return this.externalDelete;
     }
 
-    private boolean shouldCleanBuildBasedOnState(Result result) {
+    private boolean shouldCleanBuildBasedOnState(@CheckForNull Result result) {
+        if (result == null) {
+            // in case of Pipeline, the result may be null
+            return true;
+        }
         if(result.equals(Result.SUCCESS))
             return this.cleanWhenSuccess;
         if(result.equals(Result.UNSTABLE))
@@ -151,15 +207,14 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
     }
         
 	@Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        FilePath workspace = build.getWorkspace();
+    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
         try {
             if (workspace == null || !workspace.exists())
-                return true;
+                return;
             listener.getLogger().append(WsCleanup.LOG_PREFIX + "Deleting project workspace...");
             if(!shouldCleanBuildBasedOnState(build.getResult())) {
                 listener.getLogger().println(WsCleanup.LOG_PREFIX + "Skipped based on build state " + build.getResult());
-                return true;
+                return;
             }
             RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener, build);
             cleaner.perform(workspace);
@@ -169,12 +224,11 @@ public class WsCleanup extends Notifier implements MatrixAggregatable {
             if(notFailBuild) {
             	listener.getLogger().append("Cannot delete workspace: " + ex.getCause() + "\n");
             	listener.getLogger().append("Option not to fail the build is turned on, so let's continue\n");
-            	return true;
+            	return;
             }
             listener.getLogger().append("Cannot delete workspace :" + ex.getMessage() + "\n");
             throw new AbortException("Cannot delete workspace: " + ex.getMessage());
         }
-        return true;
     }
 
 	public MatrixAggregator createAggregator(MatrixBuild build, Launcher launcher, BuildListener listener) {
