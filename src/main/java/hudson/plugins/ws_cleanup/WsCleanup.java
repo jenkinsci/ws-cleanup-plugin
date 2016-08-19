@@ -244,7 +244,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
     
     @Override
     public boolean needsToRunAfterFinalized() {
-        return true;
+            return notFailBuild;
     }
     
     //TODO remove if https://github.com/jenkinsci/jenkins/pull/834 is accepted
