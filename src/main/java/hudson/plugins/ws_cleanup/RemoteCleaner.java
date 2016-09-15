@@ -29,6 +29,7 @@ import hudson.model.Node;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
+import hudson.EnvVars;
 
 import java.io.IOException;
 import java.util.List;
@@ -47,6 +48,17 @@ import java.util.List;
             TaskListener listener,
             Run<?, ?> build
     ) {
+        try {
+            EnvVars vars = build.getEnvironment(listener);
+
+            for (int i = 0; i < patterns.size(); i++) {
+                patterns.set(i, new Pattern(vars.expand(patterns.get(i).getPattern()), patterns.get(i).getType()));
+            }
+            externalDelete = vars.expand(externalDelete);
+        } catch (Exception e) {
+            e.printStackTrace(listener.getLogger());
+        }
+
         boolean wipeout = (patterns == null || patterns.isEmpty())
                 && (externalDelete == null || externalDelete.isEmpty())
         ;
