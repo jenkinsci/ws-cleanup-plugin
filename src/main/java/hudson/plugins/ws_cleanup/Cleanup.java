@@ -7,7 +7,6 @@ import hudson.model.TaskListener;
 import hudson.plugins.ws_cleanup.Pattern.PatternType;
 import hudson.remoting.VirtualChannel;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
-import hudson.util.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,6 +17,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 import jenkins.security.Roles;
+import org.apache.commons.io.IOUtils;
 import org.apache.tools.ant.DirectoryScanner;
 import org.jenkinsci.remoting.RoleChecker;
 
@@ -123,7 +123,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
      * 
      */
     private List<String> fixQuotesAndExpand(String fullPath) {
-        String tempCommand = null;
+        String tempCommand;
         if (deleteCommand.contains("%s")) {
             tempCommand = deleteCommand.replaceAll("%s", "\"" + Matcher.quoteReplacement(fullPath) + "\"");
         } else {

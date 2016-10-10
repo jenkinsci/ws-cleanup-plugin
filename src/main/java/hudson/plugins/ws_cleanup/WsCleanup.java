@@ -113,15 +113,16 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
         this.externalDelete = externalDelete;
     }
 
+    @SuppressWarnings("deprecation")
     public Object readResolve(){
         // backward compatibility issues, see JENKINS-17930 and JENKINS-17940
         // if workspace cleanup is turn on, but for all results it's turned off, it doesn't make sense,
         // so assuming we hit backward compatibility issue and set all to true, so ws gets cleanup after every build
-        if(cleanWhenSuccess == false && 
-           cleanWhenUnstable == false && 
-           cleanWhenFailure == false && 
-           cleanWhenNotBuilt == false &&
-           cleanWhenAborted == false
+        if(!cleanWhenSuccess &&
+           !cleanWhenUnstable &&
+           !cleanWhenFailure &&
+           !cleanWhenNotBuilt &&
+           !cleanWhenAborted
         ) {
             cleanWhenSuccess = true;
             cleanWhenUnstable = true;
@@ -129,7 +130,8 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
             cleanWhenNotBuilt = true;
             cleanWhenAborted = true;
         }
-        
+
+
         if(skipWhenFailed) { // convert deprecated option to choice per result
             skipWhenFailed = false; // set to false, so that we will skip this in the future 
             cleanWhenSuccess = true;

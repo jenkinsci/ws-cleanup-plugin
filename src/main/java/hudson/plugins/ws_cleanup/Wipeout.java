@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.FilePath;
 import hudson.model.Computer;
 import hudson.remoting.VirtualChannel;
@@ -73,7 +74,7 @@ import javax.annotation.Nonnull;
             return;
         }
 
-        AsyncResourceDisposer.get().dispose(new DisposableImpl(deleteMe));
+        AsyncResourceDisposer.get().dispose(new DisposableImpl(deleteMe, computer.getName()));
     }
 
     /*package for testing*/ FilePath getWipeoutWorkspace(FilePath workspace) {
@@ -81,13 +82,17 @@ import javax.annotation.Nonnull;
     }
 
     private final static class DisposableImpl implements Disposable {
+        private static final long serialVersionUID = 1L;
+
+        // TODO node can get renamed which should be reflected here
         private final String node;
         private final String path;
+        @SuppressFBWarnings("SE_TRANSIENT_FIELD_NOT_RESTORED")
         private transient FilePath ws;
 
-        private DisposableImpl(FilePath ws) {
+        private DisposableImpl(FilePath ws, String computer) {
             this.ws = ws;
-            this.node = ws.toComputer().getName();
+            this.node = computer;
             this.path = ws.getRemote();
         }
 
@@ -96,7 +101,10 @@ import javax.annotation.Nonnull;
             if (j == null) return State.TO_DISPOSE; // Going down?
 
             if (ws == null) {
-                ws = new FilePath(j.getComputer(node).getChannel(), path);
+                Computer computer = j.getComputer(node);
+                if (computer == null) return State.PURGED; // Removed or discarded cloud machine
+
+                ws = new FilePath(computer.getChannel(), path);
             }
             ws.deleteRecursive();
 
