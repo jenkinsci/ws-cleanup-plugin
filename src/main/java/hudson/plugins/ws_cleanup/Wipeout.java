@@ -113,6 +113,7 @@ import javax.annotation.Nonnull;
                 if (cause != null && ex.getMessage().startsWith("remote file operation failed:")) {
                     throw cause;
                 }
+                throw ex;
             }
 
             return ws.exists()

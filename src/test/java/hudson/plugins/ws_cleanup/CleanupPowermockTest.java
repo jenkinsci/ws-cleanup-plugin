@@ -50,6 +50,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.crypto.*"}) // http://stackoverflow.com/questions/12914814/java-security-class-cast-exception
@@ -72,7 +73,7 @@ public class CleanupPowermockTest {
         final FilePath tempWs = spy(j.jenkins.getWorkspaceFor(p).withSuffix("_ws-cleanup_" + System.currentTimeMillis()));
         doReturn(tempWs).when(spy).getWipeoutWorkspace(any(FilePath.class));
 
-        final Answer<Void>[] answer = new Answer[1];
+        final Answer[] answer = new Answer[1];
         PowerMockito.doAnswer(new Answer<Void>() { // Plug actual answers dynamically
             @Override public Void answer(InvocationOnMock invocation) throws Throwable {
                 answer[0].answer(invocation);
@@ -90,11 +91,14 @@ public class CleanupPowermockTest {
 
         Thread.sleep(100);
 
+        verify(tempWs).deleteRecursive();
+
         AsyncResourceDisposer disposer = AsyncResourceDisposer.get();
         Set<AsyncResourceDisposer.WorkItem> backlog = disposer.getBacklog();
         assertThat(backlog, Matchers.<AsyncResourceDisposer.WorkItem>iterableWithSize(1));
         AsyncResourceDisposer.WorkItem entry = backlog.iterator().next();
         assertThat(entry.getDisposable().getDisplayName(), startsWith("Workspace master:"));
+
         assertEquals("BOOM!", entry.getLastState().getDisplayName());
 
         answer[0] = new Answer<Void>() { // Correct deletion
