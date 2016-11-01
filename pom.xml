@@ -10,7 +10,7 @@
   <artifactId>ws-cleanup</artifactId>
   <packaging>hpi</packaging>
   <name>Jenkins Workspace Cleanup Plugin</name>
-  <version>0.30</version>
+  <version>0.31-SNAPSHOT</version>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/Workspace+Cleanup+Plugin</url>
 
   <properties>
