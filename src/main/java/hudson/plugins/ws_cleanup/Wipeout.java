@@ -96,7 +96,7 @@ import javax.annotation.Nonnull;
             this.path = ws.getRemote();
         }
 
-        @Nonnull public State dispose() throws Exception {
+        @Nonnull public State dispose() throws Throwable {
             Jenkins j = Jenkins.getInstance();
             if (j == null) return State.TO_DISPOSE; // Going down?
 
@@ -106,7 +106,14 @@ import javax.annotation.Nonnull;
 
                 ws = new FilePath(computer.getChannel(), path);
             }
-            ws.deleteRecursive();
+            try {
+                ws.deleteRecursive();
+            } catch (IOException ex) {
+                Throwable cause = ex.getCause();
+                if (cause != null && ex.getMessage().startsWith("remote file operation failed:")) {
+                    throw cause;
+                }
+            }
 
             return ws.exists()
                 ? State.TO_DISPOSE // Failed to delete silently
