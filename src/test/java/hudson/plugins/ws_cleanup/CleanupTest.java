@@ -27,7 +27,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeThat;
 import static org.junit.Assume.assumeTrue;
 import static org.hamcrest.Matchers.*;
 
@@ -55,7 +54,6 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import hudson.util.DescribableList;
-import hudson.util.VersionNumber;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -65,9 +63,6 @@ import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestExtension;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 
 public class CleanupTest {
 
@@ -269,11 +264,8 @@ public class CleanupTest {
         verifyFileExists("foo.txt");
     }
 
-    @Test
-    @Issue("JENKINS-37054")
+    @Test @Issue("JENKINS-37054")
     public void symbolAnnotationWorkspaceCleanup() throws Exception {
-        assumeSymbolDependencies();
-
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition("" +
                 "node { \n" +
@@ -291,11 +283,8 @@ public class CleanupTest {
         assertThat(ws.getRoot().listFiles(), nullValue());
     }
 
-    @Test
-    @Issue("JENKINS-37054")
+    @Test @Issue("JENKINS-37054")
     public void symbolWorkspaceCleanupAnnotationUsingPattern() throws Exception {
-        assumeSymbolDependencies();
-
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition("" +
                 "node { \n" +
@@ -314,11 +303,8 @@ public class CleanupTest {
         verifyFileExists("foo.txt");
     }
 
-    @Test
-    @Issue("JENKINS-37054")
+    @Test @Issue("JENKINS-37054")
     public void symbolAnnotationWorkspaceCleanupUnlessBuildFails() throws Exception {
-        assumeSymbolDependencies();
-
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition("" +
                 "node { \n" +
@@ -338,34 +324,6 @@ public class CleanupTest {
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...[WS-CLEANUP] Skipped based on build state FAILURE", run);
 
         verifyFileExists("foo.txt");
-    }
-
-    /**
-     * To use the @Symbol annotation in tests, minimum workflow-cps version 2.10 is required.
-     * This dependency comes with other dependency version requirements, as stated by this method.
-     * To run tests restricted by this method, type
-     * <pre>
-     * mvn clean install -Djenkins.version=1.642.1 -Djava.level=7 -Dworkflow-job.version=2.4 -Dworkflow-basic-steps.version=2.1 -Dworkflow-cps.version=2.10 -Dworkflow-durable-task-step.version=2.4
-     * </pre>
-     */
-    private static void assumeSymbolDependencies() {
-        assumePropertyIsGreaterThanOrEqualTo(System.getProperty("jenkins.version"), "1.642.1");
-        assumePropertyIsGreaterThanOrEqualTo(System.getProperty("java.level"), "7");
-        assumePropertyIsGreaterThanOrEqualTo(System.getProperty("workflow-job.version"), "2.4");
-        assumePropertyIsGreaterThanOrEqualTo(System.getProperty("workflow-basic-steps.version"), "2.1");
-        assumePropertyIsGreaterThanOrEqualTo(System.getProperty("workflow-cps.version"), "2.10");
-        assumePropertyIsGreaterThanOrEqualTo(System.getProperty("workflow-durable-task-step.version"), "2.4");
-    }
-
-    /**
-     * Checks if the given property is not null, and if it's greater than or equal to the given version.
-     *
-     * @param property the property to be checked
-     * @param version  the version on which the property is checked against
-     */
-    private static void assumePropertyIsGreaterThanOrEqualTo(@CheckForNull String property, @Nonnull String version) {
-        assumeThat(property, notNullValue());
-        assumeThat(new VersionNumber(property).compareTo(new VersionNumber(version)), is(greaterThanOrEqualTo(0)));
     }
 
     private void verifyFileExists(String fileName) {
