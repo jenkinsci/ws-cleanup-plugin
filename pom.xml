@@ -14,9 +14,12 @@
   <url>http://wiki.jenkins-ci.org/display/JENKINS/Workspace+Cleanup+Plugin</url>
 
   <properties>
-    <jenkins.version>1.609</jenkins.version>
-    <java.level>6</java.level>
-    <workflow.version>1.4.3</workflow.version>
+    <jenkins.version>1.642.1</jenkins.version>
+    <java.level>7</java.level>
+    <workflow-job.version>2.4</workflow-job.version>
+    <workflow-cps.version>2.10</workflow-cps.version>
+    <workflow-basic-steps.version>2.1</workflow-basic-steps.version>
+    <workflow-durable-task-step.version>2.4</workflow-durable-task-step.version>
   </properties>
 
   <developers>
@@ -46,6 +49,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>structs</artifactId>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-core</artifactId>
       <version>1.2.1</version>
@@ -54,19 +62,25 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
       <artifactId>workflow-job</artifactId>
-      <version>${workflow.version}</version>
+      <version>${workflow-job.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
       <artifactId>workflow-cps</artifactId>
-      <version>${workflow.version}</version>
+      <version>${workflow-cps.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
       <artifactId>workflow-basic-steps</artifactId>
-      <version>${workflow.version}</version>
+      <version>${workflow-basic-steps.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-durable-task-step</artifactId>
+      <version>${workflow-durable-task-step.version}</version>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>

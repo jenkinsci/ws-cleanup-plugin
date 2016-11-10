@@ -19,6 +19,7 @@ import hudson.tasks.Publisher;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -253,7 +254,8 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
     public boolean isMatrixProject(Object o) {
         return o instanceof MatrixProject;
     }
-    
+
+    @Symbol("cleanWs")
     @Extension(ordinal=-9999)
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
