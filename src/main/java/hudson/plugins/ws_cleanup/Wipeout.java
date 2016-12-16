@@ -87,11 +87,8 @@ import javax.annotation.Nonnull;
         // TODO node can get renamed which should be reflected here
         private final String node;
         private final String path;
-        @SuppressFBWarnings("SE_TRANSIENT_FIELD_NOT_RESTORED")
-        private transient FilePath ws;
 
         private DisposableImpl(FilePath ws, String computer) {
-            this.ws = ws;
             this.node = computer;
             this.path = ws.getRemote();
         }
@@ -99,13 +96,12 @@ import javax.annotation.Nonnull;
         @Nonnull public State dispose() throws Throwable {
             Jenkins j = Jenkins.getInstance();
             if (j == null) return State.TO_DISPOSE; // Going down?
-
-            if (ws == null) {
-                Computer computer = j.getComputer(node);
-                if (computer == null) return State.PURGED; // Removed or discarded cloud machine
-
-                ws = new FilePath(computer.getChannel(), path);
-            }
+                
+            Computer computer = j.getComputer(node);
+            if (computer == null) return State.PURGED; // Removed or discarded cloud machine
+            
+            FilePath ws = new FilePath(computer.getChannel(), path);
+            
             try {
                 ws.deleteRecursive();
             } catch (IOException ex) {
