@@ -1,9 +1,5 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-    <table style="width: 100%">
-        <tr>
-         <td style="width: 8em;"><f:select field="type" /></td>
-         <td><f:textbox field="pattern"/></td>
-        </tr>
-    </table>
+    <f:select field="type" />
+    <f:textbox field="pattern"/>
 </j:jelly>
