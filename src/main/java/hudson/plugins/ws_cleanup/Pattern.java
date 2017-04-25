@@ -8,12 +8,14 @@ import hudson.util.ListBoxModel;
 import java.io.Serializable;
 
 import jenkins.model.Jenkins;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @author <a href="mailto:nicolas.deloof@cloudbees.com">Nicolas De loof</a>
  */
-public class Pattern implements Serializable, Describable<Pattern>{
+public class Pattern implements Serializable, Describable<Pattern> {
 
     private final String pattern;
     private PatternType type;
@@ -25,9 +27,9 @@ public class Pattern implements Serializable, Describable<Pattern>{
     }
 
     public Object readResolve(){
-    	if(type == null)
-    		type = PatternType.INCLUDE;
-    	return this;
+        if(type == null)
+            type = PatternType.INCLUDE;
+        return this;
     }
     
     public String getPattern() {
@@ -35,34 +37,35 @@ public class Pattern implements Serializable, Describable<Pattern>{
     }
     
     public PatternType getType(){
-    	return type;
+        return type;
     }
 
     @Override
-	public DescriptorImpl getDescriptor() {
-		return (DescriptorImpl) Jenkins.getActiveInstance().getDescriptor(getClass());
-	}
-	
-	@Extension
+    public DescriptorImpl getDescriptor() {
+        return (DescriptorImpl) Jenkins.getActiveInstance().getDescriptor(getClass());
+    }
+
+    @Extension
     public static final class DescriptorImpl extends Descriptor<Pattern>{
+
+        public static final ListBoxModel TYPES = new ListBoxModel(
+                new ListBoxModel.Option("Include", PatternType.INCLUDE.toString()),
+                new ListBoxModel.Option("Exclude", PatternType.EXCLUDE.toString())
+        );
 
         @Override
         public String getDisplayName(){
-    		return "Directory scanner pattern";
-    	}
-    	
-    	public ListBoxModel doFillTypeItems(){
-    		ListBoxModel model = new ListBoxModel(2);
-    		model.add("Include",PatternType.INCLUDE.toString());
-    		model.add("Exclude",PatternType.EXCLUDE.toString());
-    		return model;
-    	}
-	}
-    
-    public enum PatternType{
-    	INCLUDE,
-    	EXCLUDE;
+            return "Directory scanner pattern";
+        }
+
+        @Restricted(NoExternalUse.class)
+        public ListBoxModel doFillTypeItems() {
+            return TYPES;
+        }
     }
     
-    private static final long serialVerisonUID = 1L;
+    public enum PatternType {
+        INCLUDE,
+        EXCLUDE
+    }
 }
