@@ -27,15 +27,12 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.FilePath;
 import hudson.model.Computer;
-import hudson.remoting.VirtualChannel;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.resourcedisposer.AsyncResourceDisposer;
 import org.jenkinsci.plugins.resourcedisposer.Disposable;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
@@ -87,11 +84,8 @@ import javax.annotation.Nonnull;
         // TODO node can get renamed which should be reflected here
         private final String node;
         private final String path;
-        @SuppressFBWarnings("SE_TRANSIENT_FIELD_NOT_RESTORED")
-        private transient FilePath ws;
 
         private DisposableImpl(FilePath ws, String computer) {
-            this.ws = ws;
             this.node = computer;
             this.path = ws.getRemote();
         }
@@ -100,12 +94,18 @@ import javax.annotation.Nonnull;
             Jenkins j = Jenkins.getInstance();
             if (j == null) return State.TO_DISPOSE; // Going down?
 
-            if (ws == null) {
-                Computer computer = j.getComputer(node);
-                if (computer == null) return State.PURGED; // Removed or discarded cloud machine
-
-                ws = new FilePath(computer.getChannel(), path);
-            }
+            // We grab the computer and file path here each time.  Caching the file path is
+            // dangerous because a FilePath contains a Channel, implying
+            // the Channel is still around. In cases where you have a disconnect/reconnect,
+            // machine that was altogether discarded, etc. this method would simply throw
+            // and retry over and over again.  In certain cloud heavy installations,
+            // this might mean we leak Channel objects for discarded machines
+            // over time, eventually leading to an OOM.
+            Computer computer = j.getComputer(node);
+            if (computer == null) return State.PURGED;
+            
+            FilePath ws = new FilePath(computer.getChannel(), path);
+            
             try {
                 ws.deleteRecursive();
             } catch (IOException ex) {
