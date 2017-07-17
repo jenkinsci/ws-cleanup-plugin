@@ -53,10 +53,10 @@ import javax.annotation.Nonnull;
 
     @Override
     protected void perform(FilePath workspace) throws IOException, InterruptedException {
-        final FilePath deleteMe = getWipeoutWorkspace(workspace);
+        final FilePath deleteMe = workspace.withSuffix("_ws-cleanup_" + System.currentTimeMillis());
         Computer computer =  workspace.toComputer();
         if (computer == null) {
-            workspace.deleteRecursive();
+            performDelete(workspace);
             return;
         }
 
@@ -67,15 +67,15 @@ import javax.annotation.Nonnull;
                     "Cleaning workspace synchronously. Failed to rename {0} to {1}.",
                     new Object[] { workspace.getRemote(), deleteMe.getName() }
             );
-            workspace.deleteRecursive();
+            performDelete(workspace);
             return;
         }
 
         AsyncResourceDisposer.get().dispose(new DisposableImpl(deleteMe, computer.getName()));
     }
 
-    /*package for testing*/ FilePath getWipeoutWorkspace(FilePath workspace) {
-        return workspace.withSuffix("_ws-cleanup_" + System.currentTimeMillis());
+    /*package for testing*/ void performDelete(FilePath workspace) throws IOException, InterruptedException {
+        workspace.deleteRecursive();
     }
 
     private final static class DisposableImpl implements Disposable {
@@ -107,7 +107,7 @@ import javax.annotation.Nonnull;
             FilePath ws = new FilePath(computer.getChannel(), path);
             
             try {
-                ws.deleteRecursive();
+                Wipeout.INSTANCE.performDelete(ws); // Use instance method for easy mocking of the behaviour
             } catch (IOException ex) {
                 Throwable cause = ex.getCause();
                 if (cause != null && ex.getMessage().startsWith("remote file operation failed:")) {

@@ -48,7 +48,6 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -63,15 +62,9 @@ public class CleanupPowermockTest {
     public void retryAsyncDirDeletion() throws Exception {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
 
-        WsCleanup wipeout = CleanupTest.wipeoutPublisher();
-        p.getPublishersList().add(wipeout);
+        p.getPublishersList().add(CleanupTest.wipeoutPublisher());
 
-        final Wipeout spy = spy(Wipeout.INSTANCE);
-        Wipeout.INSTANCE = spy;
-
-
-        final FilePath tempWs = spy(j.jenkins.getWorkspaceFor(p).withSuffix("_ws-cleanup_" + System.currentTimeMillis()));
-        doReturn(tempWs).when(spy).getWipeoutWorkspace(any(FilePath.class));
+        Wipeout.INSTANCE = spy(Wipeout.INSTANCE);
 
         final Answer[] answer = new Answer[1];
         PowerMockito.doAnswer(new Answer<Void>() { // Plug actual answers dynamically
@@ -79,7 +72,7 @@ public class CleanupPowermockTest {
                 answer[0].answer(invocation);
                 return null;
             }
-        }).when(tempWs).deleteRecursive();
+        }).when(Wipeout.INSTANCE).performDelete(any(FilePath.class));
 
         answer[0] = new Answer<Void>() { // Throw exception
             @Override public Void answer(InvocationOnMock invocation) throws Throwable {
@@ -87,11 +80,9 @@ public class CleanupPowermockTest {
             }
         };
 
-        j.buildAndAssertSuccess(p);
+        System.out.println(j.buildAndAssertSuccess(p).getLog());
 
         Thread.sleep(100);
-
-        verify(tempWs).deleteRecursive();
 
         AsyncResourceDisposer disposer = AsyncResourceDisposer.get();
         Set<AsyncResourceDisposer.WorkItem> backlog = disposer.getBacklog();
@@ -103,7 +94,7 @@ public class CleanupPowermockTest {
 
         answer[0] = new Answer<Void>() { // Correct deletion
             @Override public Void answer(InvocationOnMock invocation) throws Throwable {
-                Util.deleteRecursive(new File(tempWs.getRemote()));
+                ((FilePath) invocation.getArguments()[0]).deleteRecursive();
                 return null;
             }
         };
