@@ -92,7 +92,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         }
 
         for (String path : toDelete) {
-            if (deleteCommand != null) {
+            if (deleteCommand != null && !deleteCommand.trim().isEmpty()) {
                 List<String> cmdList = fixQuotesAndExpand((new File(f, path)).getPath());
                 doDelete(cmdList);
             } else {
@@ -103,7 +103,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         //not followed symlinks are returned as absolute paths, needs to be removed separately
         final String[] nonFollowedSymlinks = ds.getNotFollowedSymlinks();
         for (String link : nonFollowedSymlinks) {
-            if (deleteCommand != null) {
+            if (deleteCommand != null && !deleteCommand.trim().isEmpty()) {
                 List<String> cmdList = fixQuotesAndExpand((new File(link)).getPath());
                 doDelete(cmdList);
             } else {
