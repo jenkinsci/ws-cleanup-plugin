@@ -48,7 +48,7 @@ import java.util.List;
             Run<?, ?> build
     ) {
         boolean wipeout = (patterns == null || patterns.isEmpty())
-                && (externalDelete == null || externalDelete.isEmpty())
+                && (externalDelete == null || externalDelete.trim().isEmpty())
         ;
 
         if (wipeout) return Wipeout.getInstance();
