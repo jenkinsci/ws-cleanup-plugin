@@ -326,6 +326,44 @@ public class CleanupTest {
         verifyFileExists("foo.txt");
     }
 
+    @Test
+    public void doNotRunExternalCommandWhenNull() throws Exception {
+        String command = null;
+
+        FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
+        populateWorkspace(p, "content.txt");
+
+        p.getBuildWrappersList().add(
+                new PreBuildCleanup(
+                        Collections.<Pattern>emptyList(),
+                        false,
+                        null,
+                        command));
+
+        FreeStyleBuild build = j.buildAndAssertSuccess(p);
+
+        assertWorkspaceCleanedUp(build);
+    }
+
+    @Test
+    public void doNotRunExternalCommandWhenWhitespace() throws Exception {
+        String command = "  \n  ";
+
+        FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
+        populateWorkspace(p, "content.txt");
+
+        p.getBuildWrappersList().add(
+                new PreBuildCleanup(
+                        Collections.<Pattern>emptyList(),
+                        false,
+                        null,
+                        command));
+
+        FreeStyleBuild build = j.buildAndAssertSuccess(p);
+
+        assertWorkspaceCleanedUp(build);
+    }
+
     private void verifyFileExists(String fileName) {
         File[] files = ws.getRoot().listFiles();
         assertThat(files, notNullValue());
