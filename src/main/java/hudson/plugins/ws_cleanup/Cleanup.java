@@ -37,7 +37,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         this.deleteDirs = deleteDirs;
         this.listener = listener;
         this.patterns = (patterns == null) ? Collections.<Pattern>emptyList() : patterns;
-        this.deleteCommand = (command == null || command.isEmpty()) ? null : command;
+        this.deleteCommand = (command == null || command.trim().isEmpty()) ? null : command;
 
         if (environment != null && deleteCommand != null) { // allow slave environment to overwrite delete cmd
             this.deleteCommand = environment.getEnvVars().get(command);
