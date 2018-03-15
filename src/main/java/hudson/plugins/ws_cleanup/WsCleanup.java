@@ -41,6 +41,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
 
     private List<Pattern> patterns = Collections.emptyList();
     private boolean deleteDirs = false;
+    private boolean deleteTmpDir = false;
 
     @Deprecated
     private boolean skipWhenFailed = false; // keep it for backward compatibility
@@ -61,6 +62,11 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
     // FIXME can't get repeteable to work with a List<String>
     public void setPatterns(List<Pattern> patterns) {
         this.patterns = patterns;
+    }
+
+    @DataBoundSetter
+    public void setDeleteTmpDir(boolean deleteTmpDir) {
+        this.deleteTmpDir = deleteTmpDir;
     }
 
     @DataBoundSetter
@@ -149,8 +155,12 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
 		return patterns;
 	}
     
-    public boolean getDeleteDirs(){
-    	return deleteDirs;
+    public boolean getDeleteDirs() {
+        return deleteDirs;
+    }
+
+    public boolean getDeleteTmpDir() {
+        return deleteTmpDir;
     }
 
     public boolean getNotFailBuild() {
@@ -212,15 +222,25 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
 	@Override
     public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
         try {
-            if (workspace == null || !workspace.exists())
-                return;
             listener.getLogger().append(WsCleanup.LOG_PREFIX + "Deleting project workspace...");
-            if(!shouldCleanBuildBasedOnState(build.getResult())) {
-                listener.getLogger().println(WsCleanup.LOG_PREFIX + "Skipped based on build state " + build.getResult());
+            if (!shouldCleanBuildBasedOnState(build.getResult())) {
+                listener.getLogger()
+                        .println(WsCleanup.LOG_PREFIX + "Skipped based on build state " + build.getResult());
                 return;
             }
+
             RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener, build);
-            cleaner.perform(workspace);
+            FilePath workspaceTmp = new FilePath(workspace.getChannel(), workspace.getRemote() + "@tmp");
+            
+            if (workspace != null && workspace.exists()) {
+                cleaner.perform(workspace);
+            }
+            if (deleteTmpDir) {
+                listener.getLogger().append(WsCleanup.LOG_PREFIX + "Deleting project workspace's tmp directory...");
+                if (workspaceTmp != null && workspaceTmp.exists())
+                    cleaner.perform(workspaceTmp);
+            }
+
             listener.getLogger().println(WsCleanup.LOG_PREFIX + "done");
         } catch (Exception ex) {
             Logger.getLogger(WsCleanup.class.getName()).log(Level.SEVERE, null, ex);
