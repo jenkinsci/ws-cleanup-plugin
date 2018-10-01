@@ -39,11 +39,8 @@ import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
 import hudson.matrix.TextAxis;
 import hudson.model.*;
-import hudson.tasks.BuildStepMonitor;
+import hudson.tasks.BatchFile;
 import hudson.tasks.BuildWrapper;
-import hudson.tasks.Notifier;
-import hudson.tasks.Publisher;
-import hudson.tasks.Recorder;
 import hudson.tasks.Shell;
 
 import java.io.File;
@@ -53,7 +50,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import hudson.util.DescribableList;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -62,12 +58,15 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.TestExtension;
+import org.jvnet.hudson.test.TestBuilder;
 
 public class CleanupTest {
 
-    @Rule public JenkinsRule j = new JenkinsRule();
-    @Rule public TemporaryFolder ws = new TemporaryFolder();
+    @Rule
+    public JenkinsRule j = new JenkinsRule();
+
+    @Rule
+    public TemporaryFolder ws = new EnhancedTemporaryFolder();
 
     // "IllegalArgumentException: Illegal group reference" observed when filename contained '$';
     @Test
@@ -77,11 +76,13 @@ public class CleanupTest {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         populateWorkspace(p, filename);
 
-        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false, null, "rm %s"));
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false,
+                null, Functions.isWindows() ? "cmd /c del %s" : "rm %s"));
         j.buildAndAssertSuccess(p);
     }
 
-    @Test @Issue("JENKINS-20056")
+    @Test
+    @Issue("JENKINS-20056")
     public void wipeOutWholeWorkspaceBeforeBuild() throws Exception {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         populateWorkspace(p, "content.txt");
@@ -91,17 +92,19 @@ public class CleanupTest {
         assertWorkspaceCleanedUp(b);
     }
 
-    @Test @Issue("JENKINS-20056")
+    @Test
+    @Issue("JENKINS-20056")
     public void wipeOutWholeWorkspaceAfterBuild() throws Exception {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
-        p.getBuildersList().add(new Shell("touch content.txt"));
+        p.getBuildersList().add(getTouchBuilder("content.txt"));
 
         p.getPublishersList().add(wipeoutPublisher());
         FreeStyleBuild b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
     }
 
-    @Test @Issue("JENKINS-20056")
+    @Test
+    @Issue("JENKINS-20056")
     public void wipeOutWholeWorkspaceAfterBuildMatrix() throws Exception {
         MatrixProject p = j.jenkins.createProject(MatrixProject.class, "sut");
         p.setAxes(new AxisList(new TextAxis("name", "a b")));
@@ -115,7 +118,8 @@ public class CleanupTest {
         assertWorkspaceCleanedUp(p.getItem("name=b").getLastBuild());
     }
 
-    @Test @Issue("JENKINS-20056")
+    @Test
+    @Issue("JENKINS-20056")
     public void workspaceShouldNotBeManipulated() throws Exception {
         final int ITERATIONS = 50;
 
@@ -124,12 +128,18 @@ public class CleanupTest {
         p.setConcurrentBuild(true);
         p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false, null, null));
         p.getPublishersList().add(wipeoutPublisher());
-        p.getBuildersList().add(new Shell(
-                "echo =$BUILD_NUMBER= > marker;" +
-                // Something hopefully expensive to delete
-                "mkdir -p a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z/a/b/c/d/e/f/g/h/j/k/l/m/n/o/p/q/r/s//u/v/w/x/y/z/" +
-                "sleep $(($BUILD_NUMBER%5));" +
-                "grep =$BUILD_NUMBER= marker"
+        p.getBuildersList().add(
+                Functions.isWindows() ?
+                    new BatchFile("echo =$BUILD_NUMBER= > marker;" +
+                            // Something hopefully expensive to delete
+                        "cmd /x /c mkdir a\\b\\c\\d\\e\\f\\g\\h\\i\\j\\k\\l\\m\\n\\o\\p\\q\\r\\s\\t\\u\\v\\w\\x\\y\\z\\a\\b\\c\\d\\e\\f\\g\\h\\j\\k\\l\\m\\n\\o\\p\\q\\r\\s\\u\\v\\w\\x\\y\\z;" +
+                        "sleep $(($BUILD_NUMBER%5));" +
+                        "grep =$BUILD_NUMBER= marker") :
+                    new Shell("echo =$BUILD_NUMBER= > marker;" +
+                        // Something hopefully expensive to delete
+                        "mkdir -p a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z/a/b/c/d/e/f/g/h/j/k/l/m/n/o/p/q/r/s//u/v/w/x/y/z/;" +
+                        "sleep $(($BUILD_NUMBER%5));" +
+                        "grep =$BUILD_NUMBER= marker"
         ));
 
         final List<Future<FreeStyleBuild>> futureBuilds = new ArrayList<Future<FreeStyleBuild>>(ITERATIONS);
@@ -148,7 +158,7 @@ public class CleanupTest {
     @Test
     public void deleteWorkspaceWithNonAsciiCharacters() throws Exception {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
-        p.getBuildersList().add(new Shell("touch a¶‱ﻷ.txt"));
+        p.getBuildersList().add(getTouchBuilder("a¶‱ﻷ.txt"));
 
         p.getPublishersList().add(wipeoutPublisher());
 
@@ -157,9 +167,10 @@ public class CleanupTest {
         assertWorkspaceCleanedUp(build);
     }
 
-    @Test @Issue("JENKINS-26250")
+    @Test
+    @Issue("JENKINS-26250")
     public void doNotFailToWipeoutWhenRenameFails() throws Exception {
-        assumeTrue(!Functions.isWindows()); // chmod does not work here
+        assumeTrue(!Functions.isWindows()); // In MSFT we can't disable renaming a folder without enable to delete it
 
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         populateWorkspace(p, "content.txt");
@@ -177,7 +188,7 @@ public class CleanupTest {
 
     @Test
     public void reportCleanupCommandFailure() throws Exception {
-        String command = "mkdir %s";
+        String command = Functions.isWindows() ? "cmd /c md %s" : "mkdir %s";
 
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         FilePath ws = j.buildAndAssertSuccess(p).getWorkspace();
@@ -196,13 +207,21 @@ public class CleanupTest {
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
         String log = build.getLog();
 
-        assertThat(log, containsString("ERROR: Cleanup command 'mkdir " + pre.getRemote() + "' failed with code 1"));
-        assertThat(log, containsString("ERROR: Cleanup command 'mkdir " + post.getRemote() + "' failed with code 1"));
-        assertThat(log, containsString("mkdir: cannot create directory"));
-        assertThat(log, containsString("File exists"));
+        if (Functions.isWindows()) {
+            assertThat(log, containsString("ERROR: Cleanup command 'cmd /c md " + pre.getRemote() + "' failed with code 1"));
+            assertThat(log, containsString("ERROR: Cleanup command 'cmd /c md " + post.getRemote() + "' failed with code 1"));
+            assertThat(log, containsString("A subdirectory or file " + pre.getRemote() + " already exists."));
+            assertThat(log, containsString("A subdirectory or file " + post.getRemote() + " already exists."));
+        } else {
+            assertThat(log, containsString("ERROR: Cleanup command 'mkdir " + pre.getRemote() + "' failed with code 1"));
+            assertThat(log, containsString("ERROR: Cleanup command 'mkdir " + post.getRemote() + "' failed with code 1"));
+            assertThat(log, containsString("mkdir: cannot create directory"));
+            assertThat(log, containsString("File exists"));
+        }
     }
 
-    @Test @Issue("JENKINS-28454")
+    @Test
+    @Issue("JENKINS-28454")
     public void pipelineWorkspaceCleanup() throws Exception {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition("" +
@@ -216,12 +235,14 @@ public class CleanupTest {
                 "  } \n" +
                 "}"));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
-        j.assertLogContains("[WS-CLEANUP] Deleting project workspace...[WS-CLEANUP] done", run);
+        j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
+        j.assertLogContains("[WS-CLEANUP] done", run);
 
         assertThat(ws.getRoot().listFiles(), nullValue());
     }
 
-    @Test @Issue("JENKINS-28454")
+    @Test
+    @Issue("JENKINS-28454")
     public void pipelineWorkspaceCleanupUsingPattern() throws Exception {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition("" +
@@ -236,12 +257,14 @@ public class CleanupTest {
                 "   } \n" +
                 "}"));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
-        j.assertLogContains("[WS-CLEANUP] Deleting project workspace...[WS-CLEANUP] done", run);
+        j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
+        j.assertLogContains("[WS-CLEANUP] done", run);
 
         verifyFileExists("foo.txt");
     }
 
-    @Test @Issue("JENKINS-28454")
+    @Test
+    @Issue("JENKINS-28454")
     public void pipelineWorkspaceCleanupUnlessBuildFails() throws Exception {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition("" +
@@ -259,12 +282,14 @@ public class CleanupTest {
                 "}"));
         WorkflowRun build = p.scheduleBuild2(0).get();
         j.assertBuildStatus(Result.FAILURE, build);
-        j.assertLogContains("[WS-CLEANUP] Deleting project workspace...[WS-CLEANUP] Skipped based on build state FAILURE", build);
+        j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", build);
+        j.assertLogContains("[WS-CLEANUP] Skipped based on build state FAILURE", build);
 
         verifyFileExists("foo.txt");
     }
 
-    @Test @Issue("JENKINS-37054")
+    @Test
+    @Issue("JENKINS-37054")
     public void symbolAnnotationWorkspaceCleanup() throws Exception {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition("" +
@@ -278,12 +303,14 @@ public class CleanupTest {
                 "  } \n" +
                 "}"));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
-        j.assertLogContains("[WS-CLEANUP] Deleting project workspace...[WS-CLEANUP] done", run);
+        j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
+        j.assertLogContains("[WS-CLEANUP] done", run);
 
         assertThat(ws.getRoot().listFiles(), nullValue());
     }
 
-    @Test @Issue("JENKINS-37054")
+    @Test
+    @Issue("JENKINS-37054")
     public void symbolWorkspaceCleanupAnnotationUsingPattern() throws Exception {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition("" +
@@ -298,12 +325,14 @@ public class CleanupTest {
                 "   } \n" +
                 "}"));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
-        j.assertLogContains("[WS-CLEANUP] Deleting project workspace...[WS-CLEANUP] done", run);
+        j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
+        j.assertLogContains("[WS-CLEANUP] done", run);
 
         verifyFileExists("foo.txt");
     }
 
-    @Test @Issue("JENKINS-37054")
+    @Test
+    @Issue("JENKINS-37054")
     public void symbolAnnotationWorkspaceCleanupUnlessBuildFails() throws Exception {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
         p.setDefinition(new CpsFlowDefinition("" +
@@ -321,7 +350,8 @@ public class CleanupTest {
                 "}"));
         WorkflowRun run = p.scheduleBuild2(0).get();
         j.assertBuildStatus(Result.FAILURE, run);
-        j.assertLogContains("[WS-CLEANUP] Deleting project workspace...[WS-CLEANUP] Skipped based on build state FAILURE", run);
+        j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
+        j.assertLogContains("[WS-CLEANUP] Skipped based on build state FAILURE", run);
 
         verifyFileExists("foo.txt");
     }
@@ -379,8 +409,18 @@ public class CleanupTest {
         return wsCleanup;
     }
 
-    private void populateWorkspace(FreeStyleProject p, String filename) throws Exception {
-        p.getBuildersList().add(new Shell("touch '" + filename + "'"));
+    final private TestBuilder getTouchBuilder(final String filename) {
+        return new TestBuilder() {
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
+                                   BuildListener listener) throws InterruptedException, IOException {
+                build.getWorkspace().child(filename).touch(0);
+                return true;
+            }
+        };
+    }
+
+    private void populateWorkspace(FreeStyleProject p, final String filename) throws Exception {
+        p.getBuildersList().add(getTouchBuilder(filename));
         FreeStyleBuild b = j.buildAndAssertSuccess(p);
         p.getBuildersList().clear();
         assertFalse("Workspace populated", b.getWorkspace().list().isEmpty());
@@ -422,6 +462,25 @@ public class CleanupTest {
             @Override
             public String getDisplayName() {
                 return "Matrix workspace populator";
+            }
+        }
+    }
+
+    final private class EnhancedTemporaryFolder extends TemporaryFolder {
+        @Override
+        public EnhancedFile getRoot() {
+            return new EnhancedFile(super.getRoot());
+        }
+
+        final private class EnhancedFile extends File {
+            public EnhancedFile(File f) {
+                super(f.getPath());
+            }
+
+            @Override
+            public String toString() {
+                String org = super.getPath();
+                return Functions.isWindows() ? org.replaceAll("\\\\", "/") : org;
             }
         }
     }

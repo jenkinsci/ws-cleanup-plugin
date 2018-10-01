@@ -214,7 +214,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
         try {
             if (workspace == null || !workspace.exists())
                 return;
-            listener.getLogger().append(WsCleanup.LOG_PREFIX + "Deleting project workspace...");
+            listener.getLogger().println(WsCleanup.LOG_PREFIX + "Deleting project workspace...");
             if(!shouldCleanBuildBasedOnState(build.getResult())) {
                 listener.getLogger().println(WsCleanup.LOG_PREFIX + "Skipped based on build state " + build.getResult());
                 return;
@@ -225,11 +225,11 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
         } catch (Exception ex) {
             Logger.getLogger(WsCleanup.class.getName()).log(Level.SEVERE, null, ex);
             if(notFailBuild) {
-            	listener.getLogger().append("Cannot delete workspace: " + ex.getCause() + "\n");
-            	listener.getLogger().append("Option not to fail the build is turned on, so let's continue\n");
+            	listener.getLogger().println("Cannot delete workspace: " + ex.getCause());
+            	listener.getLogger().println("Option not to fail the build is turned on, so let's continue");
             	return;
             }
-            listener.getLogger().append("Cannot delete workspace :" + ex.getMessage() + "\n");
+            listener.error("Cannot delete workspace :" + ex.getMessage());
             throw new AbortException("Cannot delete workspace: " + ex.getMessage());
         }
     }

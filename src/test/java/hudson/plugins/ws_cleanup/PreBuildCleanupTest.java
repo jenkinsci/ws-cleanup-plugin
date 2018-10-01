@@ -4,6 +4,7 @@
  */
 package hudson.plugins.ws_cleanup;
 
+import hudson.Functions;
 import hudson.plugins.ws_cleanup.Pattern.PatternType;
 import java.util.List;
 import hudson.slaves.EnvironmentVariablesNodeProperty.Entry;
@@ -15,7 +16,6 @@ import hudson.model.FreeStyleProject;
 import org.jvnet.hudson.test.HudsonTestCase;
 import org.jvnet.hudson.test.recipes.LocalData;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -41,7 +41,8 @@ public class PreBuildCleanupTest extends HudsonTestCase{
         FreeStyleProject project = createFreeStyleProject("project1");
         File workspace = new File(jenkins.getRootDir().getAbsolutePath(),"workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
-        PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<Pattern>(), true, null, "rm -rf %s");
+        PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<Pattern>(), true, null,
+                Functions.isWindows() ? "cmd /c rd /s /q %s" : "rm -rf %s");
         project.getBuildWrappersList().add(cleanup);
         buildAndAssertSuccess(project);
         assertFalse("File delete-me in workspace should not exists.", new File(workspace,"delete-me").exists());
@@ -53,7 +54,8 @@ public class PreBuildCleanupTest extends HudsonTestCase{
         FreeStyleProject project = createFreeStyleProject("project1");
         Slave slave = this.createOnlineSlave();
         project.setAssignedLabel(slave.getSelfLabel());
-        slave.getNodeProperties().add(new EnvironmentVariablesNodeProperty(new Entry("delete", "rm -rf %s")));
+        slave.getNodeProperties().add(new EnvironmentVariablesNodeProperty(new Entry("delete",
+                Functions.isWindows() ? "cmd /c rd /s /q %s" : "rm -rf %s")));
         File workspace = new File(jenkins.getRootDir().getAbsolutePath(),"workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
         PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<Pattern>(), true, null, "delete");
@@ -68,7 +70,8 @@ public class PreBuildCleanupTest extends HudsonTestCase{
         FreeStyleProject project = createFreeStyleProject("project1");
         File workspace = new File(jenkins.getRootDir().getAbsolutePath(),"workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
-        PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<Pattern>(), false, null, "rm -rf %s");
+        PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<Pattern>(), false, null,
+                Functions.isWindows() ? "cmd /c del %s" : "rm -rf %s");
         project.getBuildWrappersList().add(cleanup);
         buildAndAssertSuccess(project);
         assertFalse("File file1.txt in workspace should not exists.", new File(workspace,"file1.txt").exists());
@@ -82,7 +85,8 @@ public class PreBuildCleanupTest extends HudsonTestCase{
         FreeStyleProject project = createFreeStyleProject("project1");
         Slave slave = this.createOnlineSlave();
         project.setAssignedLabel(slave.getSelfLabel());
-        slave.getNodeProperties().add(new EnvironmentVariablesNodeProperty(new Entry("delete", "rm -rf %s")));
+        slave.getNodeProperties().add(new EnvironmentVariablesNodeProperty(new Entry("delete",
+                Functions.isWindows() ? "cmd /c del %s" : "rm -rf %s")));
         File workspace = new File(jenkins.getRootDir().getAbsolutePath(),"workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
         PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<Pattern>(), false, null, "delete");
@@ -101,7 +105,8 @@ public class PreBuildCleanupTest extends HudsonTestCase{
         project.setCustomWorkspace(workspace.getAbsolutePath());
         List<Pattern> patterns = new ArrayList<Pattern>();
         patterns.add(new Pattern("delete-me/file*.txt", PatternType.INCLUDE));
-        PreBuildCleanup cleanup = new PreBuildCleanup(patterns, true, null, "rm -rf %s");
+        PreBuildCleanup cleanup = new PreBuildCleanup(patterns, true, null,
+                Functions.isWindows() ? "cmd /c del %s" : "rm -rf %s");
         project.getBuildWrappersList().add(cleanup);
         buildAndAssertSuccess(project);
         assertFalse("File file1.txt in workspace should not exists.", new File(workspace.getAbsolutePath() + "/delete-me/file1.txt").exists());
@@ -130,7 +135,8 @@ public class PreBuildCleanupTest extends HudsonTestCase{
         assertTrue("File file2.txt in workspace should exists.", new File(workspace,"file2.txt").exists());
         assertTrue("File not-delete-me in workspace should exists.", new File(workspace,"not-delete-me").exists());
     }
-    
+
+    @Test
     @LocalData
     public void testCleanWorkspaceByPatternExcludeWithoutDirectories() throws Exception{
         FreeStyleProject project = createFreeStyleProject("project1");
