@@ -45,23 +45,55 @@ import java.util.List;
             boolean deleteDirs,
             String externalDelete,
             TaskListener listener,
-            Run<?, ?> build
+            Run<?, ?> build,
+            boolean disableDeferredWipeout
     ) {
         boolean wipeout = (patterns == null || patterns.isEmpty())
                 && (externalDelete == null || externalDelete.trim().isEmpty())
+                && !disableDeferredWipeout
         ;
 
-        if (wipeout) return Wipeout.getInstance();
-
-        EnvironmentVariablesNodeProperty properties = null;
+        Node node = null;
         if (build instanceof AbstractBuild) {
-            Node node = ((AbstractBuild) build).getBuiltOn();
-            if (node != null) {
-                properties = node.getNodeProperties().get(EnvironmentVariablesNodeProperty.class);
+            node = ((AbstractBuild) build).getBuiltOn();
+        }
+
+        if (disableDeferredWipeout) {
+            listener.getLogger().append(
+                    WsCleanup.LOG_PREFIX + "Deferred wipeout is disabled by the job configuration...\n");
+        }
+
+        if (wipeout && node != null) {
+            wipeout = node.getNodeProperties().get(DisableDeferredWipeoutNodeProperty.class) == null;
+            if (!wipeout) {
+                listener.getLogger().append(
+                        WsCleanup.LOG_PREFIX + "Deferred wipeout is disabled by the node property...\n");
             }
         }
 
+        if (wipeout) {
+            listener.getLogger().append(
+                    WsCleanup.LOG_PREFIX + "Deferred wipeout is used...\n");
+            return Wipeout.getInstance();
+        }
+
+        EnvironmentVariablesNodeProperty properties = null;
+        if (node != null) {
+            properties = node.getNodeProperties().get(EnvironmentVariablesNodeProperty.class);
+        }
+
         return new Cleanup(patterns, deleteDirs, properties, externalDelete, listener);
+    }
+
+    @Deprecated
+    static RemoteCleaner get(
+            List<Pattern> patterns,
+            boolean deleteDirs,
+            String externalDelete,
+            TaskListener listener,
+            Run<?, ?> build
+    ) {
+        return get(patterns, deleteDirs, externalDelete, listener, build, false);
     }
 
     /**

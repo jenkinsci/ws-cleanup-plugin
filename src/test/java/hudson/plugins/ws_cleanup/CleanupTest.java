@@ -394,6 +394,76 @@ public class CleanupTest {
         assertWorkspaceCleanedUp(build);
     }
 
+    @Test
+    public void deferredWipeoutAfterBuild() throws Exception {
+        // Deferred wipeout enabled
+        FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut1");
+        p.getBuildersList().add(new Shell("touch content.txt"));
+        WsCleanup wsCleanup = new WsCleanup();
+        wsCleanup.setDisableDeferredWipeout(true);
+        p.getPublishersList().add(wsCleanup);
+        FreeStyleBuild b = j.buildAndAssertSuccess(p);
+        assertWorkspaceCleanedUp(b);
+        assertTrue("Deferred wipeout should be disabled",
+                b.getLog().contains("Deferred wipeout is disabled by the job configuration..."));
+
+        // Deferred wipeout disabled
+         p = j.jenkins.createProject(FreeStyleProject.class, "sut2");
+        p.getBuildersList().add(new Shell("touch content.txt"));
+        wsCleanup = new WsCleanup();
+        wsCleanup.setDisableDeferredWipeout(false);
+        p.getPublishersList().add(wsCleanup);
+        b = j.buildAndAssertSuccess(p);
+        assertWorkspaceCleanedUp(b);
+        assertTrue("Deferred wipeout should be enabled",
+                b.getLog().contains("Deferred wipeout is used..."));
+
+        // Deferred wipeout default setting
+        p = j.jenkins.createProject(FreeStyleProject.class, "sut3");
+        p.getBuildersList().add(new Shell("touch content.txt"));
+        wsCleanup = new WsCleanup();
+        p.getPublishersList().add(wsCleanup);
+        b = j.buildAndAssertSuccess(p);
+        assertWorkspaceCleanedUp(b);
+        assertTrue("Deferred wipeout should be enabled",
+                b.getLog().contains("Deferred wipeout is used..."));
+
+        // Attach a DisableDeferredWipeout node property to the master node
+        j.jenkins.getComputer("").getNode().getNodeProperties().add(new DisableDeferredWipeoutNodeProperty());
+
+        // Deferred wipeout enabled
+        p = j.jenkins.createProject(FreeStyleProject.class, "sut4");
+        p.getBuildersList().add(new Shell("touch content.txt"));
+        wsCleanup = new WsCleanup();
+        wsCleanup.setDisableDeferredWipeout(true);
+        p.getPublishersList().add(wsCleanup);
+        b = j.buildAndAssertSuccess(p);
+        assertWorkspaceCleanedUp(b);
+        assertTrue("Deferred wipeout should be disabled",
+                b.getLog().contains("Deferred wipeout is disabled by the job configuration..."));
+
+        // Deferred wipeout disabled
+        p = j.jenkins.createProject(FreeStyleProject.class, "sut5");
+        p.getBuildersList().add(new Shell("touch content.txt"));
+        wsCleanup = new WsCleanup();
+        wsCleanup.setDisableDeferredWipeout(false);
+        p.getPublishersList().add(wsCleanup);
+        b = j.buildAndAssertSuccess(p);
+        assertWorkspaceCleanedUp(b);
+        assertTrue("Deferred wipeout should be disabled on the node",
+                b.getLog().contains("Deferred wipeout is disabled by the node property..."));
+
+        // Deferred wipeout default setting
+        p = j.jenkins.createProject(FreeStyleProject.class, "sut6");
+        p.getBuildersList().add(new Shell("touch content.txt"));
+        wsCleanup = new WsCleanup();
+        p.getPublishersList().add(wsCleanup);
+        b = j.buildAndAssertSuccess(p);
+        assertWorkspaceCleanedUp(b);
+        assertTrue("Deferred wipeout should be disabled on the node",
+                b.getLog().contains("Deferred wipeout is disabled by the node property..."));
+    }
+
     private void verifyFileExists(String fileName) {
         File[] files = ws.getRoot().listFiles();
         assertThat(files, notNullValue());
