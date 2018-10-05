@@ -85,17 +85,6 @@ import java.util.List;
         return new Cleanup(patterns, deleteDirs, properties, externalDelete, listener);
     }
 
-    @Deprecated
-    static RemoteCleaner get(
-            List<Pattern> patterns,
-            boolean deleteDirs,
-            String externalDelete,
-            TaskListener listener,
-            Run<?, ?> build
-    ) {
-        return get(patterns, deleteDirs, externalDelete, listener, build, false);
-    }
-
     /**
      * Perform the cleanup.
      *
