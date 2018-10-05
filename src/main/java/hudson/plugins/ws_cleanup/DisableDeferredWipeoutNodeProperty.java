@@ -30,7 +30,7 @@ import hudson.slaves.NodePropertyDescriptor;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
- * Node property for disabling deferred wipeout
+ * Node property for disabling deferred wipeout method
  *
  *  @author pjanouse
  */
