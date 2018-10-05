@@ -1,4 +1,4 @@
 <?jelly escape-by-default='true'?>
 <div>
-  This plugin deletes the project workspace after a build is finished.
+  This plugin deletes the project workspace when invoked.
 </div>
