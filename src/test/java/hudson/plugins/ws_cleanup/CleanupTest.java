@@ -398,7 +398,7 @@ public class CleanupTest {
     public void deferredWipeoutAfterBuild() throws Exception {
         // Deferred wipeout enabled
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut1");
-        p.getBuildersList().add(new Shell("touch content.txt"));
+        p.getBuildersList().add(getTouchBuilder("content.txt"));
         WsCleanup wsCleanup = new WsCleanup();
         wsCleanup.setDisableDeferredWipeout(true);
         p.getPublishersList().add(wsCleanup);
@@ -409,7 +409,7 @@ public class CleanupTest {
 
         // Deferred wipeout disabled
          p = j.jenkins.createProject(FreeStyleProject.class, "sut2");
-        p.getBuildersList().add(new Shell("touch content.txt"));
+        p.getBuildersList().add(getTouchBuilder("content.txt"));
         wsCleanup = new WsCleanup();
         wsCleanup.setDisableDeferredWipeout(false);
         p.getPublishersList().add(wsCleanup);
@@ -420,7 +420,7 @@ public class CleanupTest {
 
         // Deferred wipeout default setting
         p = j.jenkins.createProject(FreeStyleProject.class, "sut3");
-        p.getBuildersList().add(new Shell("touch content.txt"));
+        p.getBuildersList().add(getTouchBuilder("content.txt"));
         wsCleanup = new WsCleanup();
         p.getPublishersList().add(wsCleanup);
         b = j.buildAndAssertSuccess(p);
@@ -433,7 +433,7 @@ public class CleanupTest {
 
         // Deferred wipeout enabled
         p = j.jenkins.createProject(FreeStyleProject.class, "sut4");
-        p.getBuildersList().add(new Shell("touch content.txt"));
+        p.getBuildersList().add(getTouchBuilder("content.txt"));
         wsCleanup = new WsCleanup();
         wsCleanup.setDisableDeferredWipeout(true);
         p.getPublishersList().add(wsCleanup);
@@ -444,7 +444,7 @@ public class CleanupTest {
 
         // Deferred wipeout disabled
         p = j.jenkins.createProject(FreeStyleProject.class, "sut5");
-        p.getBuildersList().add(new Shell("touch content.txt"));
+        p.getBuildersList().add(getTouchBuilder("content.txt"));
         wsCleanup = new WsCleanup();
         wsCleanup.setDisableDeferredWipeout(false);
         p.getPublishersList().add(wsCleanup);
@@ -455,7 +455,7 @@ public class CleanupTest {
 
         // Deferred wipeout default setting
         p = j.jenkins.createProject(FreeStyleProject.class, "sut6");
-        p.getBuildersList().add(new Shell("touch content.txt"));
+        p.getBuildersList().add(getTouchBuilder("content.txt"));
         wsCleanup = new WsCleanup();
         p.getPublishersList().add(wsCleanup);
         b = j.buildAndAssertSuccess(p);
