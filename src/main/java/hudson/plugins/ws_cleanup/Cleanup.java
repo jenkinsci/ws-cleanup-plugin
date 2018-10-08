@@ -150,7 +150,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
             listener.error("Cleanup command '%s' failed with code %d:", Util.join(cmdList, " "), exit);
             InputStream err = deletProc.getErrorStream();
             try {
-                Util.copyStream(err, listener.getLogger());
+                IOUtils.copy(err, listener.getLogger());
             } finally {
                 IOUtils.closeQuietly(err);
             }
