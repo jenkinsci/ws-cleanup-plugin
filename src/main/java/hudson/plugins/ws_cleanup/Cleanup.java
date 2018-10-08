@@ -26,10 +26,10 @@ import org.jenkinsci.remoting.RoleChecker;
  */
 class Cleanup extends RemoteCleaner implements FileCallable<Object> {
 
-    private List<Pattern> patterns;
+    private final List<Pattern> patterns;
     private final boolean deleteDirs;
-    private String deleteCommand = null;
-    private TaskListener listener = null;
+    private final String deleteCommand;
+    private final TaskListener listener;
 
     public Cleanup(List<Pattern> patterns, boolean deleteDirs, EnvironmentVariablesNodeProperty environment,
             String command, TaskListener listener) {
@@ -37,10 +37,12 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         this.deleteDirs = deleteDirs;
         this.listener = listener;
         this.patterns = (patterns == null) ? Collections.<Pattern>emptyList() : patterns;
-        this.deleteCommand = (command == null || command.trim().isEmpty()) ? null : command;
 
-        if (environment != null && deleteCommand != null) { // allow slave environment to overwrite delete cmd
-            this.deleteCommand = environment.getEnvVars().get(command);
+        if (command == null || command.trim().isEmpty()) {
+            this.deleteCommand = null;
+        } else {
+            // allow slave environment to overwrite delete cmd
+            this.deleteCommand = environment == null ? command : environment.getEnvVars().get(command);
         }
 
         if (patterns == null) { // if pattern is not set up, delete everything
@@ -101,7 +103,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         }
         
         //not followed symlinks are returned as absolute paths, needs to be removed separately
-        final String[] nonFollowedSymlinks = ds.getNotFollowedSymlinks();
+        String[] nonFollowedSymlinks = ds.getNotFollowedSymlinks();
         for (String link : nonFollowedSymlinks) {
             if (deleteCommand != null) {
                 List<String> cmdList = fixQuotesAndExpand((new File(link)).getPath());

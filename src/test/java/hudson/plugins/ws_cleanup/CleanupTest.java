@@ -71,7 +71,7 @@ public class CleanupTest {
     // "IllegalArgumentException: Illegal group reference" observed when filename contained '$';
     @Test
     public void doNotTreatFilenameAsRegexReplaceWhenUsingCustomCommand() throws Exception {
-        final String filename = "\\s! Dozen for $5 only!";
+        String filename = "\\s! Dozen for $5 only!";
 
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         populateWorkspace(p, filename);
@@ -121,7 +121,7 @@ public class CleanupTest {
     @Test
     @Issue("JENKINS-20056")
     public void workspaceShouldNotBeManipulated() throws Exception {
-        final int ITERATIONS = 50;
+        int ITERATIONS = 50;
 
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         p.addProperty(new ParametersDefinitionProperty(new StringParameterDefinition("RAND", "")));
@@ -142,7 +142,7 @@ public class CleanupTest {
                         "grep =$BUILD_NUMBER= marker"
         ));
 
-        final List<Future<FreeStyleBuild>> futureBuilds = new ArrayList<Future<FreeStyleBuild>>(ITERATIONS);
+        List<Future<FreeStyleBuild>> futureBuilds = new ArrayList<Future<FreeStyleBuild>>(ITERATIONS);
 
         for (int i = 0; i < ITERATIONS; i++) {
             futureBuilds.add(p.scheduleBuild2(0, (Cause) null, new ParametersAction(
@@ -479,7 +479,7 @@ public class CleanupTest {
         return wsCleanup;
     }
 
-    final private TestBuilder getTouchBuilder(final String filename) {
+    private TestBuilder getTouchBuilder(String filename) {
         return new TestBuilder() {
             public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
                                    BuildListener listener) throws InterruptedException, IOException {
@@ -489,7 +489,7 @@ public class CleanupTest {
         };
     }
 
-    private void populateWorkspace(FreeStyleProject p, final String filename) throws Exception {
+    private void populateWorkspace(FreeStyleProject p, String filename) throws Exception {
         p.getBuildersList().add(getTouchBuilder(filename));
         FreeStyleBuild b = j.buildAndAssertSuccess(p);
         p.getBuildersList().clear();
@@ -497,7 +497,7 @@ public class CleanupTest {
     }
 
     private void assertWorkspaceCleanedUp(AbstractBuild<?, ?> b) throws Exception {
-        final FilePath workspace = b.getWorkspace();
+        FilePath workspace = b.getWorkspace();
         if (workspace == null) return; // removed
 
         List<FilePath> files = workspace.list();
@@ -536,13 +536,13 @@ public class CleanupTest {
         }
     }
 
-    final private class EnhancedTemporaryFolder extends TemporaryFolder {
+    private final class EnhancedTemporaryFolder extends TemporaryFolder {
         @Override
         public EnhancedFile getRoot() {
             return new EnhancedFile(super.getRoot());
         }
 
-        final private class EnhancedFile extends File {
+        private final class EnhancedFile extends File {
             public EnhancedFile(File f) {
                 super(f.getPath());
             }

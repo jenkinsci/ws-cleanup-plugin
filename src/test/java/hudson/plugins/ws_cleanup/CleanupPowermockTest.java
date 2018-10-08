@@ -63,7 +63,7 @@ public class CleanupPowermockTest {
 
         Wipeout.INSTANCE = spy(Wipeout.INSTANCE);
 
-        final Answer[] answer = new Answer[1];
+        Answer[] answer = new Answer[1];
         PowerMockito.doAnswer(new Answer<Void>() { // Plug actual answers dynamically
             @Override public Void answer(InvocationOnMock invocation) throws Throwable {
                 answer[0].answer(invocation);
