@@ -12,6 +12,13 @@
   <name>Jenkins Workspace Cleanup Plugin</name>
   <version>0.35-SNAPSHOT</version>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/Workspace+Cleanup+Plugin</url>
+  <licenses>
+    <license>
+      <name>The MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
   <properties>
     <jenkins.version>1.642.1</jenkins.version>
