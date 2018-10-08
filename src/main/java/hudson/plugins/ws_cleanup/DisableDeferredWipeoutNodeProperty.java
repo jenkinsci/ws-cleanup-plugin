@@ -43,8 +43,6 @@ public class DisableDeferredWipeoutNodeProperty extends NodeProperty<Node> {
     @Extension // this marker indicates Hudson that this is an implementation of an extension point.
     public static final class NodePropertyDescriptorImpl extends NodePropertyDescriptor {
 
-        public static final NodePropertyDescriptorImpl DESCRIPTOR = new NodePropertyDescriptorImpl();
-
         public NodePropertyDescriptorImpl(){
             super(DisableDeferredWipeoutNodeProperty.class);
         }
