@@ -53,6 +53,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
     private boolean notFailBuild = false;
     private boolean cleanupMatrixParent = false;
     private String externalDelete = StringUtils.EMPTY;
+    private boolean disableDeferredWipeout = false;
 
     @DataBoundConstructor
     public WsCleanup() {}
@@ -112,6 +113,11 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
     @DataBoundSetter
     public void setExternalDelete(String externalDelete) {
         this.externalDelete = externalDelete;
+    }
+
+    @DataBoundSetter
+    public void setDisableDeferredWipeout(boolean disableDeferredWipeout) {
+        this.disableDeferredWipeout = disableDeferredWipeout;
     }
 
     @SuppressWarnings("deprecation")
@@ -219,7 +225,8 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
                 listener.getLogger().println(WsCleanup.LOG_PREFIX + "Skipped based on build state " + build.getResult());
                 return;
             }
-            RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener, build);
+            RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener,
+                    build, disableDeferredWipeout);
             cleaner.perform(workspace);
             listener.getLogger().println(WsCleanup.LOG_PREFIX + "done");
         } catch (Exception ex) {

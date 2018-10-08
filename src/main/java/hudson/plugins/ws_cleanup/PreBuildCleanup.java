@@ -27,15 +27,23 @@ public class PreBuildCleanup extends BuildWrapper {
 	private final List<Pattern> patterns;
 	private final boolean deleteDirs;
 	private final String cleanupParameter;
-        private final String externalDelete;
+	private final String externalDelete;
+	private final boolean disableDeferredWipeout;
+
+	@Deprecated
+	public PreBuildCleanup(List<Pattern> patterns, boolean deleteDirs, String cleanupParameter, String externalDelete) {
+		this(patterns, deleteDirs, cleanupParameter, externalDelete, false);
+	}
 
 	@DataBoundConstructor
-	public PreBuildCleanup(List<Pattern> patterns, boolean deleteDirs, String cleanupParameter, String externalDelete) {
-		this.patterns = patterns;
-		this.deleteDirs = deleteDirs;
-		this.cleanupParameter = cleanupParameter;
-                this.externalDelete = externalDelete;
-	}
+    public PreBuildCleanup(List<Pattern> patterns, boolean deleteDirs, String cleanupParameter,
+                           String externalDelete, boolean disableDeferredWipeout) {
+        this.patterns = patterns;
+        this.deleteDirs = deleteDirs;
+        this.cleanupParameter = cleanupParameter;
+        this.externalDelete = externalDelete;
+        this.disableDeferredWipeout = disableDeferredWipeout;
+    }
 
 	public List<Pattern> getPatterns(){
 		return patterns;
@@ -49,9 +57,13 @@ public class PreBuildCleanup extends BuildWrapper {
 		return this.cleanupParameter;
 	}
 	
-        public String getExternalDelete() {
+	public String getExternalDelete() {
             return this.externalDelete;
         }
+
+    public boolean getDisableDeferredWipeout() {
+	    return this.disableDeferredWipeout;
+    }
         
 	@Override
 	public DescriptorImpl getDescriptor() {
@@ -81,7 +93,8 @@ public class PreBuildCleanup extends BuildWrapper {
                
 		if (ws != null) {
 		    listener.getLogger().println(WsCleanup.LOG_PREFIX + "Deleting project workspace...");
-		    RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener, build);
+		    RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener,
+					build, disableDeferredWipeout);
 			try {
 				// Retry the operation a couple of times,
 				int retry = 3;
