@@ -142,7 +142,7 @@ public class CleanupTest {
                         "grep =$BUILD_NUMBER= marker"
         ));
 
-        List<Future<FreeStyleBuild>> futureBuilds = new ArrayList<Future<FreeStyleBuild>>(ITERATIONS);
+        List<Future<FreeStyleBuild>> futureBuilds = new ArrayList<>(ITERATIONS);
 
         for (int i = 0; i < ITERATIONS; i++) {
             futureBuilds.add(p.scheduleBuild2(0, (Cause) null, new ParametersAction(

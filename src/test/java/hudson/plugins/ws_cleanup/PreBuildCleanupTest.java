@@ -29,7 +29,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
         FreeStyleProject project = createFreeStyleProject("project1");
         File workspace = new File(jenkins.getRootDir().getAbsolutePath(),"workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
-        PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<Pattern>(), false, null, null);
+        PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<>(), false, null, null);
         project.getBuildWrappersList().add(cleanup);
         buildAndAssertSuccess(project);
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
@@ -41,7 +41,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
         FreeStyleProject project = createFreeStyleProject("project1");
         File workspace = new File(jenkins.getRootDir().getAbsolutePath(),"workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
-        PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<Pattern>(), true, null,
+        PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<>(), true, null,
                 Functions.isWindows() ? "cmd /c rd /s /q %s" : "rm -rf %s");
         project.getBuildWrappersList().add(cleanup);
         buildAndAssertSuccess(project);
@@ -58,7 +58,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
                 Functions.isWindows() ? "cmd /c rd /s /q %s" : "rm -rf %s")));
         File workspace = new File(jenkins.getRootDir().getAbsolutePath(),"workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
-        PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<Pattern>(), true, null, "delete");
+        PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<>(), true, null, "delete");
         project.getBuildWrappersList().add(cleanup);
         buildAndAssertSuccess(project);
         assertFalse("File delete-me in workspace should not exists.", new File(workspace,"delete-me").exists());
@@ -70,7 +70,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
         FreeStyleProject project = createFreeStyleProject("project1");
         File workspace = new File(jenkins.getRootDir().getAbsolutePath(),"workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
-        PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<Pattern>(), false, null,
+        PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<>(), false, null,
                 Functions.isWindows() ? "cmd /c del %s" : "rm -rf %s");
         project.getBuildWrappersList().add(cleanup);
         buildAndAssertSuccess(project);
@@ -89,7 +89,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
                 Functions.isWindows() ? "cmd /c del %s" : "rm -rf %s")));
         File workspace = new File(jenkins.getRootDir().getAbsolutePath(),"workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
-        PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<Pattern>(), false, null, "delete");
+        PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<>(), false, null, "delete");
         project.getBuildWrappersList().add(cleanup);
         buildAndAssertSuccess(project);
         assertFalse("File file1.txt in workspace should not exists.", new File(workspace,"file1.txt").exists());
@@ -103,7 +103,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
         FreeStyleProject project = createFreeStyleProject("project1");
         File workspace = new File(jenkins.getRootDir().getAbsolutePath(),"workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
-        List<Pattern> patterns = new ArrayList<Pattern>();
+        List<Pattern> patterns = new ArrayList<>();
         patterns.add(new Pattern("delete-me/file*.txt", PatternType.INCLUDE));
         PreBuildCleanup cleanup = new PreBuildCleanup(patterns, true, null,
                 Functions.isWindows() ? "cmd /c del %s" : "rm -rf %s");
@@ -126,7 +126,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
         FreeStyleProject project = createFreeStyleProject("project1");
         File workspace = new File(jenkins.getRootDir().getAbsolutePath(),"workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
-        List<Pattern> patterns = new ArrayList<Pattern>();
+        List<Pattern> patterns = new ArrayList<>();
         patterns.add(new Pattern("file1.txt", PatternType.INCLUDE));
         PreBuildCleanup cleanup = new PreBuildCleanup(patterns, false, null, null);
         project.getBuildWrappersList().add(cleanup);
@@ -142,7 +142,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
         FreeStyleProject project = createFreeStyleProject("project1");
         File workspace = new File(jenkins.getRootDir().getAbsolutePath(),"workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
-        List<Pattern> patterns = new ArrayList<Pattern>();
+        List<Pattern> patterns = new ArrayList<>();
         patterns.add(new Pattern("file1.txt", PatternType.EXCLUDE));
         PreBuildCleanup cleanup = new PreBuildCleanup(patterns, false, null, null);
         project.getBuildWrappersList().add(cleanup);
@@ -158,7 +158,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
         FreeStyleProject project = createFreeStyleProject("project1");
         File workspace = new File(jenkins.getRootDir().getAbsolutePath(),"workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
-        List<Pattern> patterns = new ArrayList<Pattern>();
+        List<Pattern> patterns = new ArrayList<>();
         patterns.add(new Pattern("*", PatternType.INCLUDE));
         PreBuildCleanup cleanup = new PreBuildCleanup(patterns, true, null, null);
         project.getBuildWrappersList().add(cleanup);
@@ -174,7 +174,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
         FreeStyleProject project = createFreeStyleProject("project1");
         File workspace = new File(jenkins.getRootDir().getAbsolutePath(),"workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
-        List<Pattern> patterns = new ArrayList<Pattern>();
+        List<Pattern> patterns = new ArrayList<>();
         patterns.add(new Pattern("*", PatternType.INCLUDE));
         PreBuildCleanup cleanup = new PreBuildCleanup(patterns, false, null, null);
         project.getBuildWrappersList().add(cleanup);
@@ -193,7 +193,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
         FreeStyleProject project = createFreeStyleProject("project1");
         project.setCustomWorkspace(workspace.getAbsolutePath());
         project.getBuildWrappersList().add(
-                new PreBuildCleanup(new ArrayList<Pattern>(), false, null,
+                new PreBuildCleanup(new ArrayList<>(), false, null,
                 null, true));
         FreeStyleBuild build = buildAndAssertSuccess(project);
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
@@ -204,7 +204,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
         project = createFreeStyleProject("project2");
         project.setCustomWorkspace(workspace.getAbsolutePath());
         project.getBuildWrappersList().add(
-                new PreBuildCleanup(new ArrayList<Pattern>(), false, null,
+                new PreBuildCleanup(new ArrayList<>(), false, null,
                 null, false));
         build = buildAndAssertSuccess(project);
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
@@ -215,7 +215,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
         project = createFreeStyleProject("project3");
         project.setCustomWorkspace(workspace.getAbsolutePath());
         project.getBuildWrappersList().add(
-                new PreBuildCleanup(new ArrayList<Pattern>(), false, null,null));
+                new PreBuildCleanup(new ArrayList<>(), false, null,null));
         build = buildAndAssertSuccess(project);
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
         assertTrue("Deferred wipeout should be enabled by default",
@@ -228,7 +228,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
         project = createFreeStyleProject("project4");
         project.setCustomWorkspace(workspace.getAbsolutePath());
         project.getBuildWrappersList().add(
-                new PreBuildCleanup(new ArrayList<Pattern>(), false, null,
+                new PreBuildCleanup(new ArrayList<>(), false, null,
                         null, true));
         build = buildAndAssertSuccess(project);
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
@@ -239,7 +239,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
         project = createFreeStyleProject("project5");
         project.setCustomWorkspace(workspace.getAbsolutePath());
         project.getBuildWrappersList().add(
-                new PreBuildCleanup(new ArrayList<Pattern>(), false, null,
+                new PreBuildCleanup(new ArrayList<>(), false, null,
                         null, false));
         build = buildAndAssertSuccess(project);
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
@@ -250,7 +250,7 @@ public class PreBuildCleanupTest extends HudsonTestCase {
         project = createFreeStyleProject("project6");
         project.setCustomWorkspace(workspace.getAbsolutePath());
         project.getBuildWrappersList().add(
-                new PreBuildCleanup(new ArrayList<Pattern>(), false, null,null));
+                new PreBuildCleanup(new ArrayList<>(), false, null,null));
         build = buildAndAssertSuccess(project);
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
         assertTrue("Deferred wipeout should be disabled on the node",

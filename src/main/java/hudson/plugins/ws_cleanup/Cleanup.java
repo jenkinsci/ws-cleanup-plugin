@@ -36,7 +36,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
 
         this.deleteDirs = deleteDirs;
         this.listener = listener;
-        this.patterns = (patterns == null) ? Collections.<Pattern>emptyList() : patterns;
+        this.patterns = (patterns == null) ? Collections.emptyList() : patterns;
 
         if (command == null || command.trim().isEmpty()) {
             this.deleteCommand = null;
@@ -46,7 +46,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         }
 
         if (patterns == null) { // if pattern is not set up, delete everything
-            patterns = new ArrayList<Pattern>();
+            patterns = new ArrayList<>();
             patterns.add(new Pattern("**/*", PatternType.INCLUDE));
         }
     }
@@ -60,8 +60,8 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         DirectoryScanner ds = new DirectoryScanner();
         ds.setFollowSymlinks(false);
         ds.setBasedir(f);
-        ArrayList<String> includes = new ArrayList<String>();
-        ArrayList<String> excludes = new ArrayList<String>();
+        ArrayList<String> includes = new ArrayList<>();
+        ArrayList<String> excludes = new ArrayList<>();
         for (Pattern pattern : patterns) {
             if (pattern.getType() == PatternType.INCLUDE) {
                 includes.add(pattern.getPattern());
@@ -131,7 +131,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         } else {
             tempCommand = deleteCommand + " " + fullPath;
         }
-        List<String> cmdList = new ArrayList<String>();
+        List<String> cmdList = new ArrayList<>();
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\"([^\"]+)\"|(\\S+)");
         java.util.regex.Matcher m = p.matcher(tempCommand);
         while (m.find()) {
