@@ -67,7 +67,7 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
     }
 
 	private boolean doWorkspaceCleanup() throws IOException, InterruptedException {
-		listener.getLogger().append("\nDeleting matrix project workspace... \n");
+		listener.getLogger().println("Deleting matrix project workspace...");
 		
 		//TODO do we want to keep keep child workpsaces if run on the same machine? Make it optional?
 		/*
@@ -101,7 +101,7 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
         	if (workspace == null || !workspace.exists()) 
                 return true;
             if(!shouldCleanBuildBasedOnState(build.getResult())) {
-                listener.getLogger().append("Skipped based on build state " + build.getResult() + "\n\n");
+                listener.getLogger().println("Skipped based on build state " + build.getResult() + "\n");
                 return true;
             }
             if (patterns == null || patterns.isEmpty()) {
@@ -117,8 +117,8 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
         } catch (Exception ex) {
             Logger.getLogger(WsCleanupMatrixAggregator.class.getName()).log(Level.SEVERE, null, ex);
             if(notFailBuild) {
-            	listener.getLogger().append("Cannot delete workspace: " + ex.getCause() + "\n");
-            	listener.getLogger().append("Option not to fail the build is turned on, so let's continue\n");
+            	listener.getLogger().println("Cannot delete workspace: " + ex.getCause());
+            	listener.getLogger().println("Option not to fail the build is turned on, so let's continue");
             	return true;
             }
             return false;

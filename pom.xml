@@ -12,10 +12,17 @@
   <name>Jenkins Workspace Cleanup Plugin</name>
   <version>0.35-SNAPSHOT</version>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/Workspace+Cleanup+Plugin</url>
+  <licenses>
+    <license>
+      <name>The MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
   <properties>
     <jenkins.version>1.642.1</jenkins.version>
-    <java.level>7</java.level>
+    <java.level>8</java.level>
     <workflow-job.version>2.4</workflow-job.version>
     <workflow-cps.version>2.10</workflow-cps.version>
     <workflow-basic-steps.version>2.1</workflow-basic-steps.version>
@@ -95,22 +102,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <executions>
-          <execution>
-              <id>default-test</id>
-              <configuration>
-                <argLine>-XX:MaxPermSize=256m</argLine>
-              </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 
   <repositories>
     <repository>

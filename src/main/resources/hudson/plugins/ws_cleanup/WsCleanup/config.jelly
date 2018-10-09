@@ -49,5 +49,8 @@ DEALINGS IN THE SOFTWARE. -->
         <f:entry title="${%External Deletion Command}" help="/plugin/ws-cleanup/help/externalDelete.html">
             <f:textbox field="externalDelete" />
         </f:entry>
+        <f:entry title="${%Disable deferred wipeout}" help="/plugin/ws-cleanup/help/disableDeferredWipeout.html">
+            <f:checkbox field="disableDeferredWipeout" checked="${it.disableDeferredWipeout}" />
+        </f:entry>
     </f:advanced>
 </j:jelly>
