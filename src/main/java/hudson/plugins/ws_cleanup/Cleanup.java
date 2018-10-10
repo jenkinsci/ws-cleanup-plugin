@@ -26,25 +26,27 @@ import org.jenkinsci.remoting.RoleChecker;
  */
 class Cleanup extends RemoteCleaner implements FileCallable<Object> {
 
-    private List<Pattern> patterns;
+    private final List<Pattern> patterns;
     private final boolean deleteDirs;
-    private String deleteCommand = null;
-    private TaskListener listener = null;
+    private final String deleteCommand;
+    private final TaskListener listener;
 
     public Cleanup(List<Pattern> patterns, boolean deleteDirs, EnvironmentVariablesNodeProperty environment,
             String command, TaskListener listener) {
 
         this.deleteDirs = deleteDirs;
         this.listener = listener;
-        this.patterns = (patterns == null) ? Collections.<Pattern>emptyList() : patterns;
-        this.deleteCommand = (command == null || command.trim().isEmpty()) ? null : command;
+        this.patterns = (patterns == null) ? Collections.emptyList() : patterns;
 
-        if (environment != null && deleteCommand != null) { // allow slave environment to overwrite delete cmd
-            this.deleteCommand = environment.getEnvVars().get(command);
+        if (command == null || command.trim().isEmpty()) {
+            this.deleteCommand = null;
+        } else {
+            // allow slave environment to overwrite delete cmd
+            this.deleteCommand = environment == null ? command : environment.getEnvVars().get(command);
         }
 
         if (patterns == null) { // if pattern is not set up, delete everything
-            patterns = new ArrayList<Pattern>();
+            patterns = new ArrayList<>();
             patterns.add(new Pattern("**/*", PatternType.INCLUDE));
         }
     }
@@ -58,8 +60,8 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         DirectoryScanner ds = new DirectoryScanner();
         ds.setFollowSymlinks(false);
         ds.setBasedir(f);
-        ArrayList<String> includes = new ArrayList<String>();
-        ArrayList<String> excludes = new ArrayList<String>();
+        ArrayList<String> includes = new ArrayList<>();
+        ArrayList<String> excludes = new ArrayList<>();
         for (Pattern pattern : patterns) {
             if (pattern.getType() == PatternType.INCLUDE) {
                 includes.add(pattern.getPattern());
@@ -101,7 +103,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         }
         
         //not followed symlinks are returned as absolute paths, needs to be removed separately
-        final String[] nonFollowedSymlinks = ds.getNotFollowedSymlinks();
+        String[] nonFollowedSymlinks = ds.getNotFollowedSymlinks();
         for (String link : nonFollowedSymlinks) {
             if (deleteCommand != null) {
                 List<String> cmdList = fixQuotesAndExpand((new File(link)).getPath());
@@ -129,7 +131,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         } else {
             tempCommand = deleteCommand + " " + fullPath;
         }
-        List<String> cmdList = new ArrayList<String>();
+        List<String> cmdList = new ArrayList<>();
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("\"([^\"]+)\"|(\\S+)");
         java.util.regex.Matcher m = p.matcher(tempCommand);
         while (m.find()) {
@@ -150,7 +152,7 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
             listener.error("Cleanup command '%s' failed with code %d:", Util.join(cmdList, " "), exit);
             InputStream err = deletProc.getErrorStream();
             try {
-                Util.copyStream(err, listener.getLogger());
+                IOUtils.copy(err, listener.getLogger());
             } finally {
                 IOUtils.closeQuietly(err);
             }

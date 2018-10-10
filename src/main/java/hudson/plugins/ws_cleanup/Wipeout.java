@@ -53,7 +53,7 @@ import javax.annotation.Nonnull;
 
     @Override
     protected void perform(FilePath workspace) throws IOException, InterruptedException {
-        final FilePath deleteMe = workspace.withSuffix("_ws-cleanup_" + System.currentTimeMillis());
+        FilePath deleteMe = workspace.withSuffix("_ws-cleanup_" + System.currentTimeMillis());
         Computer computer =  workspace.toComputer();
         if (computer == null) {
             performDelete(workspace);
@@ -78,7 +78,7 @@ import javax.annotation.Nonnull;
         workspace.deleteRecursive();
     }
 
-    private final static class DisposableImpl implements Disposable {
+    private static final class DisposableImpl implements Disposable {
         private static final long serialVersionUID = 1L;
 
         // TODO node can get renamed which should be reflected here

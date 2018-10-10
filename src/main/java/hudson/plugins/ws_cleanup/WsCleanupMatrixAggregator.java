@@ -29,8 +29,8 @@ public class WsCleanupMatrixAggregator extends MatrixAggregator {
     private final String externalDelete;
 	
 	public WsCleanupMatrixAggregator(MatrixBuild build, Launcher launcher, BuildListener listener, List<Pattern> patterns, 
-			boolean deleteDirs, final boolean cleanWhenSuccess, final boolean cleanWhenUnstable, final boolean cleanWhenFailure,
-            final boolean cleanWhenNotBuilt, final boolean cleanWhenAborted, final boolean notFailBuild, final String externalDelete) {
+			boolean deleteDirs, boolean cleanWhenSuccess, boolean cleanWhenUnstable, boolean cleanWhenFailure,
+			boolean cleanWhenNotBuilt, boolean cleanWhenAborted, boolean notFailBuild, String externalDelete) {
 		super(build, launcher, listener);
 		this.patterns = patterns;
 		this.deleteDirs = deleteDirs;

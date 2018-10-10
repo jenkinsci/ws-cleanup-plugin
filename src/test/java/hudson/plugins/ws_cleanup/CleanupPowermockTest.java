@@ -24,7 +24,6 @@
 package hudson.plugins.ws_cleanup;
 
 import hudson.FilePath;
-import hudson.Util;
 import hudson.model.FreeStyleProject;
 import org.hamcrest.Matchers;
 import org.jenkinsci.plugins.resourcedisposer.AsyncResourceDisposer;
@@ -39,7 +38,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
@@ -49,7 +47,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.crypto.*"}) // http://stackoverflow.com/questions/12914814/java-security-class-cast-exception
@@ -66,7 +63,7 @@ public class CleanupPowermockTest {
 
         Wipeout.INSTANCE = spy(Wipeout.INSTANCE);
 
-        final Answer[] answer = new Answer[1];
+        Answer[] answer = new Answer[1];
         PowerMockito.doAnswer(new Answer<Void>() { // Plug actual answers dynamically
             @Override public Void answer(InvocationOnMock invocation) throws Throwable {
                 answer[0].answer(invocation);
