@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>ws-cleanup</artifactId>
-  <version>0.35</version>
+  <version>0.36-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
   <name>Jenkins Workspace Cleanup Plugin</name>
@@ -33,7 +33,7 @@
     <connection>scm:git:git://github.com/jenkinsci/ws-cleanup-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/ws-cleanup-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/ws-cleanup-plugin</url>
-    <tag>ws-cleanup-0.35</tag>
+    <tag>ws-cleanup-0.30</tag>
   </scm>
 
   <properties>
