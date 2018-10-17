@@ -196,6 +196,10 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
         return this.externalDelete;
     }
 
+    public boolean isDisableDeferredWipeout() {
+        return this.disableDeferredWipeout;
+    }
+    
     private boolean shouldCleanBuildBasedOnState(@CheckForNull Result result) {
         if (result == null) {
             // in case of Pipeline, the result may be null
