@@ -179,8 +179,12 @@ public class CleanupTest {
         FilePath workspace = p.getLastBuild().getWorkspace();
         workspace.getParent().chmod(0555); // Remove write for parent dir so rename will fail
 
-        workspace.renameTo(workspace.withSuffix("2"));
-        assertTrue("Rename operation should fail", workspace.exists());
+        try {
+            workspace.renameTo(workspace.withSuffix("2"));
+            assertTrue("Rename operation should fail", workspace.exists());
+        } catch (java.nio.file.AccessDeniedException ade) {
+            // expected on Java 9 +
+        }
 
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(build);

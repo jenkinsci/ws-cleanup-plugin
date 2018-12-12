@@ -24,6 +24,8 @@
 package hudson.plugins.ws_cleanup;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystemException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -60,18 +62,20 @@ import javax.annotation.Nonnull;
             return;
         }
 
-        workspace.renameTo(deleteMe);
-        if (!deleteMe.exists()) {
-            LOGGER.log(
-                    Level.WARNING,
-                    "Cleaning workspace synchronously. Failed to rename {0} to {1}.",
-                    new Object[] { workspace.getRemote(), deleteMe.getName() }
-            );
-            performDelete(workspace);
+        String errmsg = "Cleaning workspace synchronously. Failed to rename " + workspace.getRemote() + " to " + deleteMe.getName() + ".";
+        try {
+            workspace.renameTo(deleteMe);
+        } catch (FileSystemException expected) {
+            errmsg += " " + expected.toString();
+        }
+
+        if (deleteMe.exists()) {
+            AsyncResourceDisposer.get().dispose(new DisposableImpl(deleteMe, computer.getName()));
             return;
         }
 
-        AsyncResourceDisposer.get().dispose(new DisposableImpl(deleteMe, computer.getName()));
+        LOGGER.log(Level.WARNING, errmsg);
+        performDelete(workspace);
     }
 
     /*package for testing*/ void performDelete(FilePath workspace) throws IOException, InterruptedException {
