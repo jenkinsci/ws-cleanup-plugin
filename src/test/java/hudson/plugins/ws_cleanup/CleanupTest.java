@@ -24,6 +24,7 @@
 package hudson.plugins.ws_cleanup;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -48,8 +49,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Future;
 
+import org.hamcrest.Matchers;
+import org.jenkinsci.plugins.resourcedisposer.AsyncResourceDisposer;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -179,8 +183,12 @@ public class CleanupTest {
         FilePath workspace = p.getLastBuild().getWorkspace();
         workspace.getParent().chmod(0555); // Remove write for parent dir so rename will fail
 
-        workspace.renameTo(workspace.withSuffix("2"));
-        assertTrue("Rename operation should fail", workspace.exists());
+        try {
+            workspace.renameTo(workspace.withSuffix("2"));
+            assertTrue("Rename operation should fail", workspace.exists());
+        } catch (java.nio.file.AccessDeniedException ade) {
+            // expected on Java 9 +
+        }
 
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(build);
@@ -392,6 +400,40 @@ public class CleanupTest {
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
 
         assertWorkspaceCleanedUp(build);
+    }
+
+    @Test
+    public void retryAsyncDirDeletion() throws Exception {
+        FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
+
+        p.getPublishersList().add(CleanupTest.wipeoutPublisher());
+
+        Wipeout.INSTANCE = new Wipeout() {
+            @Override void performDelete(FilePath workspace) throws IOException {
+                throw new IOException("BOOM!");
+            }
+        };
+
+        System.out.println(j.buildAndAssertSuccess(p).getLog());
+
+        Thread.sleep(100);
+
+        AsyncResourceDisposer disposer = AsyncResourceDisposer.get();
+        Set<AsyncResourceDisposer.WorkItem> backlog = disposer.getBacklog();
+        assertThat(backlog, Matchers.iterableWithSize(1));
+        AsyncResourceDisposer.WorkItem entry = backlog.iterator().next();
+        assertThat(entry.getDisposable().getDisplayName(), startsWith("Workspace master:"));
+
+        assertEquals("BOOM!", entry.getLastState().getDisplayName());
+
+        Wipeout.INSTANCE = new Wipeout();
+
+        //noinspection deprecation
+        disposer.reschedule();
+
+        Thread.sleep(100);
+
+        assertThat(disposer.getBacklog(), emptyCollectionOf(AsyncResourceDisposer.WorkItem.class));
     }
 
     @Test
