@@ -17,14 +17,13 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import jenkins.tasks.SimpleBuildStep;
-import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -59,7 +58,6 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
     public WsCleanup() {}
 
     @DataBoundSetter
-    // FIXME can't get repeteable to work with a List<String>
     public void setPatterns(List<Pattern> patterns) {
         this.patterns = patterns;
     }
@@ -137,7 +135,6 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
             cleanWhenNotBuilt = true;
             cleanWhenAborted = true;
         }
-
 
         if(skipWhenFailed) { // convert deprecated option to choice per result
             skipWhenFailed = false; // set to false, so that we will skip this in the future 
@@ -220,9 +217,9 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
     }
         
 	@Override
-    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws IOException {
         try {
-            if (workspace == null || !workspace.exists())
+            if (!workspace.exists())
                 return;
             listener.getLogger().println(WsCleanup.LOG_PREFIX + "Deleting project workspace...");
             if(!shouldCleanBuildBasedOnState(build.getResult())) {
@@ -260,8 +257,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
     public boolean needsToRunAfterFinalized() {
         return true;
     }
-    
-    //TODO remove if https://github.com/jenkinsci/jenkins/pull/834 is accepted
+
     public boolean isMatrixProject(Object o) {
         return o instanceof MatrixProject;
     }
@@ -275,7 +271,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
         }
 
         @Override
-        public String getDisplayName() {
+        public @Nonnull String getDisplayName() {
             return Messages.WsCleanup_Delete_workspace();
         }
 
@@ -283,12 +279,5 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
         public boolean isApplicable(Class clazz) {
             return true;
         }
-
-        @Override
-        public Publisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            return super.newInstance(req, formData);
-        }
     }
-
-
 }
