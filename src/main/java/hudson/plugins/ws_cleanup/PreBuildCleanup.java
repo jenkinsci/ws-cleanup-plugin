@@ -15,10 +15,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.kohsuke.stapler.DataBoundConstructor;
+
 /**
- * 
  * @author vjuranek
- *
  */
 public class PreBuildCleanup extends BuildWrapper {
 
@@ -70,9 +69,8 @@ public class PreBuildCleanup extends BuildWrapper {
 		return (DescriptorImpl) super.getDescriptor();
 	}
 
-	
 	@Override
-	public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+	public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) {
 		return new NoopEnv();
 	}
 
@@ -82,7 +80,7 @@ public class PreBuildCleanup extends BuildWrapper {
 
 		// Check if a cleanupParameter has been setup and skip cleaning workspace if set to false
 		if (cleanupParameter != null && !cleanupParameter.isEmpty()) {
-			Boolean doCleanup = Boolean.valueOf((String) build.getBuildVariables().get(this.cleanupParameter));
+			boolean doCleanup = Boolean.parseBoolean((String) build.getBuildVariables().get(this.cleanupParameter));
 			if (!doCleanup) {
 				listener.getLogger().println(WsCleanup.LOG_PREFIX + "Clean-up disabled, skipping workspace deletion.");
 				return;
@@ -119,8 +117,9 @@ public class PreBuildCleanup extends BuildWrapper {
 						}
 					}
 				}
-			} catch(InterruptedException e) {
+			} catch (InterruptedException e) {
 				LOGGER.log(Level.SEVERE, "Cleanup interrupted", e);
+				Thread.currentThread().interrupt();
 			}
 		}
 	}
@@ -135,6 +134,5 @@ public class PreBuildCleanup extends BuildWrapper {
 
 	}
 
-	class NoopEnv extends Environment{
-	}
+	class NoopEnv extends Environment {}
 }

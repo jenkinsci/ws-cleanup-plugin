@@ -16,6 +16,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @author <a href="mailto:nicolas.deloof@cloudbees.com">Nicolas De loof</a>
  */
 public class Pattern implements Serializable, Describable<Pattern> {
+    private static final long serialVersionUID = 5405352019347262189L;
 
     private final String pattern;
     private PatternType type;
@@ -42,13 +43,13 @@ public class Pattern implements Serializable, Describable<Pattern> {
 
     @Override
     public DescriptorImpl getDescriptor() {
-        return (DescriptorImpl) Jenkins.getActiveInstance().getDescriptor(getClass());
+        return (DescriptorImpl) Jenkins.get().getDescriptorOrDie(getClass());
     }
 
     @Extension
     public static final class DescriptorImpl extends Descriptor<Pattern>{
 
-        public static final ListBoxModel TYPES = new ListBoxModel(
+        private static final ListBoxModel TYPES = new ListBoxModel(
                 new ListBoxModel.Option("Include", PatternType.INCLUDE.toString()),
                 new ListBoxModel.Option("Exclude", PatternType.EXCLUDE.toString())
         );
