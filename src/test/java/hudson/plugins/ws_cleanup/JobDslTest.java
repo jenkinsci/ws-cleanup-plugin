@@ -44,13 +44,20 @@ import static org.junit.Assert.assertTrue;
 public class JobDslTest {
     @ClassRule public static JenkinsRule j = new JenkinsRule();
 
+    private void applyScript(String s) throws java.io.IOException {
+        JenkinsJobManagement jjm = new JenkinsJobManagement(System.out, Collections.emptyMap(), new File("."));
+        new DslScriptLoader(jjm).runScript(s);
+    }
+
+    private FreeStyleProject getJob(String emptyCleanWs) {
+        return j.jenkins.getItem(emptyCleanWs, j.jenkins, FreeStyleProject.class);
+    }
+
     @Test
     public void emptyCleanWs() throws Exception {
-        JenkinsJobManagement jjm = new JenkinsJobManagement(System.out, Collections.emptyMap(), new File("."));
-        new DslScriptLoader(jjm).runScript("job('emptyCleanWs') { publishers { cleanWs() } }");
+        applyScript("job('emptyCleanWs') { publishers { cleanWs() } }");
 
-        FreeStyleProject foo = j.jenkins.getItem("emptyCleanWs", j.jenkins, FreeStyleProject.class);
-        WsCleanup wsc = foo.getPublishersList().get(WsCleanup.class);
+        WsCleanup wsc = getJob("emptyCleanWs").getPublishersList().get(WsCleanup.class);
 
         assertThat(wsc.getPatterns(), emptyIterable());
         assertFalse(wsc.getDeleteDirs());
@@ -66,36 +73,32 @@ public class JobDslTest {
 
     @Test
     public void fullCleanWs() throws Exception {
-        JenkinsJobManagement jjm = new JenkinsJobManagement(System.out, Collections.emptyMap(), new File("."));
-        new DslScriptLoader(jjm).runScript(
-                "job('fullCleanWs') {" +
-                "publishers {\n" +
-                "    cleanWs {\n" +
-                "        cleanWhenAborted(true)\n" +
-                "        cleanWhenFailure(true)\n" +
-                "        cleanWhenNotBuilt(false)\n" +
-                "        cleanWhenSuccess(true)\n" +
-                "        cleanWhenUnstable(true)\n" +
-                "        deleteDirs(true)\n" +
-                "        notFailBuild(true)\n" +
-                "        disableDeferredWipeout(true)\n" +
-                "        patterns {\n" +
-                "            pattern {\n" +
-                "                type('EXCLUDE')\n" +
-                "                pattern('.propsfile')\n" +
-                "            }\n"  +
-                "            pattern {\n" +
-                "                type('INCLUDE')\n" +
-                "                pattern('.gitignore')\n" +
-                "            }\n" +
-                "        }\n" +
-                "    }\n" +
-                "}\n" +
-                "}"
-        );
+        applyScript("job('fullCleanWs') {" +
+        "publishers {\n" +
+        "    cleanWs {\n" +
+        "        cleanWhenAborted(true)\n" +
+        "        cleanWhenFailure(true)\n" +
+        "        cleanWhenNotBuilt(false)\n" +
+        "        cleanWhenSuccess(true)\n" +
+        "        cleanWhenUnstable(true)\n" +
+        "        deleteDirs(true)\n" +
+        "        notFailBuild(true)\n" +
+        "        disableDeferredWipeout(true)\n" +
+        "        patterns {\n" +
+        "            pattern {\n" +
+        "                type('EXCLUDE')\n" +
+        "                pattern('.propsfile')\n" +
+        "            }\n"  +
+        "            pattern {\n" +
+        "                type('INCLUDE')\n" +
+        "                pattern('.gitignore')\n" +
+        "            }\n" +
+        "        }\n" +
+        "    }\n" +
+        "}\n" +
+        "}");
 
-        FreeStyleProject foo = j.jenkins.getItem("fullCleanWs", j.jenkins, FreeStyleProject.class);
-        WsCleanup wsc = foo.getPublishersList().get(WsCleanup.class);
+        WsCleanup wsc = getJob("fullCleanWs").getPublishersList().get(WsCleanup.class);
 
         assertTrue(wsc.getDeleteDirs());
         assertEquals("", wsc.getExternalDelete());
@@ -115,5 +118,42 @@ public class JobDslTest {
         Pattern in = patterns.get(1);
         assertEquals(Pattern.PatternType.INCLUDE, in.getType());
         assertEquals(".gitignore", in.getPattern());
+    }
+
+    @Test
+    public void emptyPreBuildCleanup() throws Exception {
+        applyScript("job('emptyPreBuildCleanup') { wrappers { preBuildCleanup() } }");
+
+        PreBuildCleanup pbc = getJob("emptyPreBuildCleanup").getBuildWrappersList().get(PreBuildCleanup.class);
+        assertEquals("", pbc.getCleanupParameter());
+        assertEquals(false, pbc.getDeleteDirs());
+        assertEquals(false, pbc.getDisableDeferredWipeout());
+        assertEquals("", pbc.getExternalDelete());
+        assertThat(pbc.getPatterns(), emptyIterable());
+    }
+
+    @Test
+    public void examplePreBuildCleanup() throws Exception {
+        applyScript("job('examplePreBuildCleanup') {\n" +
+                "    wrappers {\n" +
+                "        preBuildCleanup {\n" +
+                "            includePattern('**/target/**')\n" +
+                "            deleteDirectories()\n" +
+                "            cleanupParameter('CLEANUP')\n" +
+                "        }\n" +
+                "    }\n" +
+                "}");
+
+        PreBuildCleanup pbc = getJob("examplePreBuildCleanup").getBuildWrappersList().get(PreBuildCleanup.class);
+        assertEquals("CLEANUP", pbc.getCleanupParameter());
+        assertEquals(true, pbc.getDeleteDirs());
+        assertEquals(false, pbc.getDisableDeferredWipeout());
+        assertEquals("", pbc.getExternalDelete());
+
+        List<Pattern> patterns = pbc.getPatterns();
+        assertThat(patterns, iterableWithSize(1));
+        Pattern ex = patterns.get(0);
+        assertEquals(Pattern.PatternType.INCLUDE, ex.getType());
+        assertEquals("**/target/**", ex.getPattern());
     }
 }
