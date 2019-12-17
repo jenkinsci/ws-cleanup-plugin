@@ -31,6 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * Clean workspace after the build is done.
  *
  * @author dvrzalik
  */
