@@ -44,11 +44,7 @@ job("foo") {
 
 ## Pre-pipeline
 
-The plugin declared build wrapper (*Delete workspace before build
-starts*) and post build step (*Delete workspace when build is done*).
-They both permit configuring what and in what circumstances will be
-deleted. The post build step can also take into account the build
-status.
+The plugin provides a build wrapper (*Delete workspace before build starts*) and a post build step (*Delete workspace when build is done*).  These steps will allow you to configure which files will be deleted and in what circumstances.  The post build step can also take the build status into account.
 
 ## Pattern
 
