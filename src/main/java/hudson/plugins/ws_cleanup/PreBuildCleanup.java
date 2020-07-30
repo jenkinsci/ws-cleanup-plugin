@@ -1,12 +1,14 @@
 package hudson.plugins.ws_cleanup;
 
 import hudson.AbortException;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
+import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildWrapper;
 
 import java.io.IOException;
@@ -14,12 +16,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import hudson.tasks.BuildWrapperDescriptor;
+import jenkins.tasks.SimpleBuildWrapper;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @author vjuranek
  */
-public class PreBuildCleanup extends BuildWrapper {
+public class PreBuildCleanup extends SimpleBuildWrapper {
 
 	private static final Logger LOGGER = Logger.getLogger(PreBuildCleanup.class.getName());
 
@@ -70,26 +74,22 @@ public class PreBuildCleanup extends BuildWrapper {
 	}
 
 	@Override
-	public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) {
-		return new NoopEnv();
+	protected boolean runPreCheckout() {
+		return true;
 	}
 
 	@Override
-	public void preCheckout(AbstractBuild build, Launcher launcher,
-			BuildListener listener) throws AbortException {
-
+	public void setUp(Context context, Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, EnvVars initialEnvironment) throws IOException, InterruptedException {
 		// Check if a cleanupParameter has been setup and skip cleaning workspace if set to false
 		if (cleanupParameter != null && !cleanupParameter.isEmpty()) {
-			boolean doCleanup = Boolean.parseBoolean((String) build.getBuildVariables().get(this.cleanupParameter));
+			boolean doCleanup = Boolean.parseBoolean(initialEnvironment.get(this.cleanupParameter));
 			if (!doCleanup) {
 				listener.getLogger().println(WsCleanup.LOG_PREFIX + "Clean-up disabled, skipping workspace deletion.");
 				return;
 			}
 		}
 
-		FilePath ws = build.getWorkspace();
-               
-		if (ws != null) {
+		if (workspace != null) {
 		    listener.getLogger().println(WsCleanup.LOG_PREFIX + "Deleting project workspace...");
 		    RemoteCleaner cleaner = RemoteCleaner.get(patterns, deleteDirs, externalDelete, listener,
 					build, disableDeferredWipeout);
@@ -98,11 +98,11 @@ public class PreBuildCleanup extends BuildWrapper {
 				int retry = 3;
 				while (true) {
 					try {
-						if (!ws.exists()) {
+						if (!workspace.exists()) {
 							return;
 						}
 
-						cleaner.perform(ws);
+						cleaner.perform(workspace);
 						listener.getLogger().println(WsCleanup.LOG_PREFIX + "Done");
 						break;
 					} catch (IOException e) {
@@ -125,13 +125,17 @@ public class PreBuildCleanup extends BuildWrapper {
 	}
 
 	@Extension(ordinal=9999)
-	public static final class DescriptorImpl extends Descriptor<BuildWrapper> {
+	public static final class DescriptorImpl extends BuildWrapperDescriptor {
 
 		@Override
 		public String getDisplayName() {
 			return Messages.PreBuildCleanup_Delete_workspace();
 		}
 
+		@Override
+		public boolean isApplicable(AbstractProject<?, ?> item) {
+			return true;
+		}
 	}
 
 	class NoopEnv extends Environment {}
