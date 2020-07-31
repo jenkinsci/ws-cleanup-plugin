@@ -4,7 +4,7 @@
 
 There is a single [step](https://jenkins.io/doc/pipeline/steps/ws-cleanup) to be used whenever workspace is allocated. 
 
-## Job DSL
+### Scripted pipeline (Job DSL)
 
 Examples:
 
@@ -37,6 +37,42 @@ job("foo") {
                     pattern('.gitignore')
                 }
             }
+        }
+    }
+}
+```
+
+### Descriptive pipeline
+
+Examples:
+
+```groovy
+pipeline { 
+    agent any
+    options {
+        skipDefaultCheckout(true)
+    }
+    stages {
+        stage('Build') {
+            steps {
+                // Clean before build
+                preBuildCleanWs(cleanupParameter: 'CLEANUP',
+                        deleteDirs: true,
+                        patterns: [[pattern: '**/target/**', type: 'INCLUDE']]) {
+                    checkout scm
+                    echo "Building ${env.JOB_NAME}..."
+                }
+            }
+        }
+    }
+    post {
+        // Clean after build
+        always {
+            cleanWs(cleanWhenNotBuilt: false,
+                    deleteDirs: true,
+                    disableDeferredWipeout: true,
+                    notFailBuild: true,
+                    patterns: [[pattern: '.gitignore', type: 'INCLUDE'], [pattern: '.propsfile', type: 'EXCLUDE']])
         }
     }
 }

@@ -5,6 +5,7 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
 import hudson.model.Run;
@@ -12,13 +13,17 @@ import hudson.model.TaskListener;
 import hudson.tasks.BuildWrapper;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hudson.tasks.BuildWrapperDescriptor;
 import jenkins.tasks.SimpleBuildWrapper;
+import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 /**
  * @author vjuranek
@@ -27,18 +32,22 @@ public class PreBuildCleanup extends SimpleBuildWrapper {
 
 	private static final Logger LOGGER = Logger.getLogger(PreBuildCleanup.class.getName());
 
-	private final List<Pattern> patterns;
-	private final boolean deleteDirs;
-	private final String cleanupParameter;
-	private final String externalDelete;
-	private final boolean disableDeferredWipeout;
+	private List<Pattern> patterns = Collections.emptyList();
+	private boolean deleteDirs;
+	private String cleanupParameter = StringUtils.EMPTY;
+	private String externalDelete = StringUtils.EMPTY;
+	private boolean disableDeferredWipeout;
+
+	@DataBoundConstructor
+	public PreBuildCleanup() {
+	}
 
 	@Deprecated
 	public PreBuildCleanup(List<Pattern> patterns, boolean deleteDirs, String cleanupParameter, String externalDelete) {
 		this(patterns, deleteDirs, cleanupParameter, externalDelete, false);
 	}
 
-	@DataBoundConstructor
+	@Deprecated
     public PreBuildCleanup(List<Pattern> patterns, boolean deleteDirs, String cleanupParameter,
                            String externalDelete, boolean disableDeferredWipeout) {
         this.patterns = patterns;
@@ -76,6 +85,31 @@ public class PreBuildCleanup extends SimpleBuildWrapper {
 	@Override
 	protected boolean runPreCheckout() {
 		return true;
+	}
+
+	@DataBoundSetter
+	public void setCleanupParameter(String cleanupParameter) {
+		this.cleanupParameter = Util.fixNull(cleanupParameter);
+	}
+
+	@DataBoundSetter
+	public void setDeleteDirs(boolean deleteDirs) {
+		this.deleteDirs = deleteDirs;
+	}
+
+	@DataBoundSetter
+	public void setDisableDeferredWipeout(boolean disableDeferredWipeout) {
+		this.disableDeferredWipeout = disableDeferredWipeout;
+	}
+
+	@DataBoundSetter
+	public void setExternalDelete(String externalDelete) {
+		this.externalDelete = Util.fixNull(externalDelete);
+	}
+
+	@DataBoundSetter
+	public void setPatterns(List<Pattern> patterns) {
+		this.patterns = patterns;
 	}
 
 	@Override
@@ -124,6 +158,7 @@ public class PreBuildCleanup extends SimpleBuildWrapper {
 		}
 	}
 
+	@Symbol("preBuildCleanWs")
 	@Extension(ordinal=9999)
 	public static final class DescriptorImpl extends BuildWrapperDescriptor {
 
