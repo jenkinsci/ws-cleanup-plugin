@@ -1,6 +1,15 @@
 target
+
+# mvn hpi:run
 work
-.*
-!.travis.yml
-!.github/
+
+# IntelliJ IDEA project files
 *.iml
+*.iws
+*.ipr
+.idea
+
+# Eclipse project files
+.settings
+.classpath
+.project
