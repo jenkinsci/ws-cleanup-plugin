@@ -9,7 +9,7 @@ import hudson.model.Node;
 import hudson.model.Result;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 
-import javax.annotation.CheckForNull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;

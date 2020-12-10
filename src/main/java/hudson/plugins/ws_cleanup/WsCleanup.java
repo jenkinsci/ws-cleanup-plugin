@@ -22,8 +22,8 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -218,7 +218,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
     }
         
 	@Override
-    public void perform(@Nonnull Run<?, ?> build, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws IOException {
+    public void perform(@NonNull Run<?, ?> build, @NonNull FilePath workspace, @NonNull Launcher launcher, @NonNull TaskListener listener) throws IOException {
         try {
             if (!workspace.exists())
                 return;
@@ -272,7 +272,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
         }
 
         @Override
-        public @Nonnull String getDisplayName() {
+        public @NonNull String getDisplayName() {
             return Messages.WsCleanup_Delete_workspace();
         }
 

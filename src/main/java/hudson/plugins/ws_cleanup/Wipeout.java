@@ -34,7 +34,7 @@ import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.resourcedisposer.AsyncResourceDisposer;
 import org.jenkinsci.plugins.resourcedisposer.Disposable;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Cleanup workspace wiping it out completely.
@@ -93,7 +93,7 @@ import javax.annotation.Nonnull;
             this.path = ws.getRemote();
         }
 
-        @Nonnull public State dispose() throws Throwable {
+        @NonNull public State dispose() throws Throwable {
             Jenkins j = Jenkins.getInstanceOrNull();
             if (j == null) return State.TO_DISPOSE; // Going down?
 
@@ -125,7 +125,7 @@ import javax.annotation.Nonnull;
             ;
         }
 
-        @Nonnull public String getDisplayName() {
+        @NonNull public String getDisplayName() {
             return "Workspace " + (node.isEmpty() ? "master" : node) + ':' + path;
         }
     }

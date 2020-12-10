@@ -28,6 +28,7 @@ import hudson.model.Node;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
 import org.kohsuke.stapler.DataBoundConstructor;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Node property for disabling deferred wipeout
@@ -50,6 +51,7 @@ public class DisableDeferredWipeoutNodeProperty extends NodeProperty<Node> {
         /**
          * This human readable name is used in the configuration screen.
          */
+        @NonNull
         public String getDisplayName() {
             return Messages.DisableDeferredWipeoutNodeProperty_Name();
         }
