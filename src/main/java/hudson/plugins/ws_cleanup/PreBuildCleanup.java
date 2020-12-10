@@ -1,5 +1,7 @@
 package hudson.plugins.ws_cleanup;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
@@ -9,12 +11,12 @@ import hudson.model.BuildListener;
 import hudson.model.Descriptor;
 import hudson.tasks.BuildWrapper;
 
+import org.kohsuke.stapler.DataBoundConstructor;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @author vjuranek
@@ -127,6 +129,7 @@ public class PreBuildCleanup extends BuildWrapper {
 	@Extension(ordinal=9999)
 	public static final class DescriptorImpl extends Descriptor<BuildWrapper> {
 
+		@NonNull
 		@Override
 		public String getDisplayName() {
 			return Messages.PreBuildCleanup_Delete_workspace();

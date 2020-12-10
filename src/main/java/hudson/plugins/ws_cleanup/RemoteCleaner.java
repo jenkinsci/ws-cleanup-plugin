@@ -55,7 +55,7 @@ import java.util.List;
 
         Node node = null;
         if (build instanceof AbstractBuild) {
-            node = ((AbstractBuild) build).getBuiltOn();
+            node = ((AbstractBuild<?, ?>) build).getBuiltOn();
         }
 
         if (disableDeferredWipeout) {

@@ -5,12 +5,13 @@ import hudson.model.Describable;
 import hudson.model.Descriptor;
 import hudson.util.ListBoxModel;
 
-import java.io.Serializable;
-
 import jenkins.model.Jenkins;
+
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import java.io.Serializable;
 
 /**
  * @author <a href="mailto:nicolas.deloof@cloudbees.com">Nicolas De loof</a>
