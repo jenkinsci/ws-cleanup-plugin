@@ -4,24 +4,26 @@
  */
 package hudson.plugins.ws_cleanup;
 
-import hudson.Functions;
-import hudson.model.FreeStyleBuild;
-import hudson.plugins.ws_cleanup.Pattern.PatternType;
-import java.util.List;
-import hudson.slaves.EnvironmentVariablesNodeProperty.Entry;
-import hudson.slaves.EnvironmentVariablesNodeProperty;
-import hudson.model.Slave;
-import java.io.File;
-import java.util.ArrayList;
-import hudson.model.FreeStyleProject;
-import org.junit.Rule;
-import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.recipes.LocalData;
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import hudson.Functions;
+import hudson.model.FreeStyleBuild;
+import hudson.model.FreeStyleProject;
+import hudson.model.Slave;
+import hudson.plugins.ws_cleanup.Pattern.PatternType;
+import hudson.slaves.EnvironmentVariablesNodeProperty;
+import hudson.slaves.EnvironmentVariablesNodeProperty.Entry;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.recipes.LocalData;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lucinka

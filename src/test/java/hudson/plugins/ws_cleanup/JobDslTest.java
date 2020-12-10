@@ -23,9 +23,18 @@
  */
 package hudson.plugins.ws_cleanup;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.emptyIterable;
+import static org.hamcrest.Matchers.iterableWithSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import hudson.model.FreeStyleProject;
+
 import javaposse.jobdsl.dsl.DslScriptLoader;
 import javaposse.jobdsl.plugin.JenkinsJobManagement;
+
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -33,13 +42,6 @@ import org.jvnet.hudson.test.JenkinsRule;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.emptyIterable;
-import static org.hamcrest.Matchers.iterableWithSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class JobDslTest {
     @ClassRule public static JenkinsRule j = new JenkinsRule();

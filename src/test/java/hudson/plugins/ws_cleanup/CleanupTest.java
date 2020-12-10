@@ -23,6 +23,7 @@
  */
 package hudson.plugins.ws_cleanup;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.emptyCollectionOf;
 import static org.hamcrest.Matchers.is;
@@ -31,7 +32,6 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -39,9 +39,9 @@ import hudson.FilePath;
 import hudson.Functions;
 import hudson.Launcher;
 import hudson.matrix.AxisList;
-import hudson.matrix.MatrixRun;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
+import hudson.matrix.MatrixRun;
 import hudson.matrix.TextAxis;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
@@ -57,14 +57,6 @@ import hudson.tasks.BatchFile;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.Shell;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Future;
-
 import org.hamcrest.Matchers;
 import org.jenkinsci.plugins.resourcedisposer.AsyncResourceDisposer;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
@@ -76,6 +68,14 @@ import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestBuilder;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Future;
 
 public class CleanupTest {
 

@@ -23,18 +23,20 @@
  */
 package hudson.plugins.ws_cleanup;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+
+import hudson.FilePath;
+import hudson.model.Computer;
+
+import jenkins.model.Jenkins;
+
+import org.jenkinsci.plugins.resourcedisposer.AsyncResourceDisposer;
+import org.jenkinsci.plugins.resourcedisposer.Disposable;
+
 import java.io.IOException;
 import java.nio.file.FileSystemException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import hudson.FilePath;
-import hudson.model.Computer;
-import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.resourcedisposer.AsyncResourceDisposer;
-import org.jenkinsci.plugins.resourcedisposer.Disposable;
-
-import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Cleanup workspace wiping it out completely.

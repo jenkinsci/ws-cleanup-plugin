@@ -23,12 +23,14 @@
  */
 package hudson.plugins.ws_cleanup;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+
 import hudson.Extension;
 import hudson.model.Node;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
+
 import org.kohsuke.stapler.DataBoundConstructor;
-import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Node property for disabling deferred wipeout

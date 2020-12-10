@@ -11,12 +11,12 @@ import hudson.model.BuildListener;
 import hudson.model.Descriptor;
 import hudson.tasks.BuildWrapper;
 
+import org.kohsuke.stapler.DataBoundConstructor;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @author vjuranek

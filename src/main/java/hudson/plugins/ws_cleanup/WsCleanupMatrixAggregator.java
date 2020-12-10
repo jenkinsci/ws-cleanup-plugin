@@ -1,5 +1,7 @@
 package hudson.plugins.ws_cleanup;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.matrix.MatrixAggregator;
@@ -9,7 +11,6 @@ import hudson.model.Node;
 import hudson.model.Result;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 
-import edu.umd.cs.findbugs.annotations.CheckForNull;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
