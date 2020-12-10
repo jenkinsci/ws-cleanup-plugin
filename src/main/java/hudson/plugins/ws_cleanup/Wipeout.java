@@ -23,19 +23,20 @@
  */
 package hudson.plugins.ws_cleanup;
 
-import java.io.IOException;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.FileSystemException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import hudson.FilePath;
 import hudson.model.Computer;
+
 import jenkins.model.Jenkins;
+
 import org.jenkinsci.plugins.resourcedisposer.AsyncResourceDisposer;
 import org.jenkinsci.plugins.resourcedisposer.Disposable;
 
-import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.nio.file.FileSystemException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Cleanup workspace wiping it out completely.
@@ -94,8 +95,8 @@ import javax.annotation.Nonnull;
             this.path = ws.getRemote();
         }
 
-        @Nonnull public State dispose() throws Throwable {
-            Jenkins j = Jenkins.getInstance();
+        @NonNull public State dispose() throws Throwable {
+            Jenkins j = Jenkins.getInstanceOrNull();
             if (j == null) return State.TO_DISPOSE; // Going down?
 
             // We grab the computer and file path here each time.  Caching the file path is
@@ -126,7 +127,7 @@ import javax.annotation.Nonnull;
             ;
         }
 
-        @Nonnull public String getDisplayName() {
+        @NonNull public String getDisplayName() {
             return "Workspace " + (node.isEmpty() ? "master" : node) + ':' + path;
         }
     }

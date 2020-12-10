@@ -1,12 +1,18 @@
 package hudson.plugins.ws_cleanup;
 
-import hudson.FilePath.FileCallable;
 import hudson.FilePath;
+import hudson.FilePath.FileCallable;
 import hudson.Util;
 import hudson.model.TaskListener;
 import hudson.plugins.ws_cleanup.Pattern.PatternType;
 import hudson.remoting.VirtualChannel;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
+
+import jenkins.security.Roles;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.tools.ant.DirectoryScanner;
+import org.jenkinsci.remoting.RoleChecker;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,11 +21,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
-
-import jenkins.security.Roles;
-import org.apache.commons.io.IOUtils;
-import org.apache.tools.ant.DirectoryScanner;
-import org.jenkinsci.remoting.RoleChecker;
 
 /**
  * Perform configured cleanup on remote directory.

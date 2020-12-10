@@ -23,34 +23,39 @@
  */
 package hudson.plugins.ws_cleanup;
 
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.emptyCollectionOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
-import static org.hamcrest.Matchers.*;
 
 import hudson.FilePath;
 import hudson.Functions;
 import hudson.Launcher;
 import hudson.matrix.AxisList;
-import hudson.matrix.MatrixRun;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
+import hudson.matrix.MatrixRun;
 import hudson.matrix.TextAxis;
-import hudson.model.*;
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+import hudson.model.Cause;
+import hudson.model.FreeStyleBuild;
+import hudson.model.FreeStyleProject;
+import hudson.model.ParametersAction;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.model.Result;
+import hudson.model.StringParameterDefinition;
+import hudson.model.StringParameterValue;
 import hudson.tasks.BatchFile;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.Shell;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Future;
 
 import org.hamcrest.Matchers;
 import org.jenkinsci.plugins.resourcedisposer.AsyncResourceDisposer;
@@ -63,6 +68,14 @@ import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestBuilder;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Future;
 
 public class CleanupTest {
 
@@ -80,8 +93,8 @@ public class CleanupTest {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         populateWorkspace(p, filename);
 
-        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false,
-                null, Functions.isWindows() ? "cmd /c del %s" : "rm %s"));
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false,
+                null, Functions.isWindows() ? "cmd /c del %s" : "rm %s", false));
         j.buildAndAssertSuccess(p);
     }
 
@@ -91,7 +104,7 @@ public class CleanupTest {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         populateWorkspace(p, "content.txt");
 
-        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false, null, null));
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, null, false));
         FreeStyleBuild b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
     }
@@ -130,7 +143,7 @@ public class CleanupTest {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         p.addProperty(new ParametersDefinitionProperty(new StringParameterDefinition("RAND", "")));
         p.setConcurrentBuild(true);
-        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false, null, null));
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, null, false));
         p.getPublishersList().add(wipeoutPublisher());
         p.getBuildersList().add(
                 Functions.isWindows() ?
@@ -185,7 +198,7 @@ public class CleanupTest {
 
         try {
             workspace.renameTo(workspace.withSuffix("2"));
-            assertTrue("Rename operation should fail", workspace.exists());
+            assumeTrue("Rename operation should fail", workspace.exists());
         } catch (java.nio.file.AccessDeniedException ade) {
             // expected on Java 9 +
         }
@@ -205,7 +218,7 @@ public class CleanupTest {
         FilePath post = ws.child("post-build");
         post.touch(0);
 
-        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false, null, command));
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, command, false));
         WsCleanup wsCleanup = new WsCleanup();
         wsCleanup.setNotFailBuild(true);
         wsCleanup.setCleanupMatrixParent(true);
@@ -213,18 +226,17 @@ public class CleanupTest {
         p.getPublishersList().add(wsCleanup);
 
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
-        String log = build.getLog();
 
         if (Functions.isWindows()) {
-            assertThat(log, containsString("ERROR: Cleanup command 'cmd /c md " + pre.getRemote() + "' failed with code 1"));
-            assertThat(log, containsString("ERROR: Cleanup command 'cmd /c md " + post.getRemote() + "' failed with code 1"));
-            assertThat(log, containsString("A subdirectory or file " + pre.getRemote() + " already exists."));
-            assertThat(log, containsString("A subdirectory or file " + post.getRemote() + " already exists."));
+            j.assertLogContains("ERROR: Cleanup command 'cmd /c md " + pre.getRemote() + "' failed with code 1", build);
+            j.assertLogContains("ERROR: Cleanup command 'cmd /c md " + post.getRemote() + "' failed with code 1", build);
+            j.assertLogContains("A subdirectory or file " + pre.getRemote() + " already exists.", build);
+            j.assertLogContains("A subdirectory or file " + post.getRemote() + " already exists.", build);
         } else {
-            assertThat(log, containsString("ERROR: Cleanup command 'mkdir " + pre.getRemote() + "' failed with code 1"));
-            assertThat(log, containsString("ERROR: Cleanup command 'mkdir " + post.getRemote() + "' failed with code 1"));
-            assertThat(log, containsString("mkdir: cannot create directory"));
-            assertThat(log, containsString("File exists"));
+            j.assertLogContains("ERROR: Cleanup command 'mkdir " + pre.getRemote() + "' failed with code 1", build);
+            j.assertLogContains("ERROR: Cleanup command 'mkdir " + post.getRemote() + "' failed with code 1", build);
+            j.assertLogContains("mkdir: cannot create directory", build);
+            j.assertLogContains("File exists", build);
         }
     }
 
@@ -241,7 +253,7 @@ public class CleanupTest {
                 "           step([$class: 'WsCleanup']) \n" +
                 "       } \n" +
                 "  } \n" +
-                "}"));
+                "}", true));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
         j.assertLogContains("[WS-CLEANUP] done", run);
@@ -263,7 +275,7 @@ public class CleanupTest {
                 "           step([$class: 'WsCleanup', patterns: [[pattern: 'bar.*', type: 'INCLUDE']]]) \n" +
                 "       } \n" +
                 "   } \n" +
-                "}"));
+                "}", true));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
         j.assertLogContains("[WS-CLEANUP] done", run);
@@ -287,7 +299,7 @@ public class CleanupTest {
                 "			step ([$class: 'WsCleanup', cleanWhenFailure: false]) \n" +
                 "       } \n" +
                 "   } \n" +
-                "}"));
+                "}", true));
         WorkflowRun build = p.scheduleBuild2(0).get();
         j.assertBuildStatus(Result.FAILURE, build);
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", build);
@@ -309,7 +321,7 @@ public class CleanupTest {
                 "           cleanWs() \n" +
                 "       } \n" +
                 "  } \n" +
-                "}"));
+                "}", true));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
         j.assertLogContains("[WS-CLEANUP] done", run);
@@ -331,7 +343,7 @@ public class CleanupTest {
                 "           cleanWs patterns: [[pattern: 'bar.*', type: 'INCLUDE']] \n" +
                 "       } \n" +
                 "   } \n" +
-                "}"));
+                "}", true));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
         j.assertLogContains("[WS-CLEANUP] done", run);
@@ -348,14 +360,14 @@ public class CleanupTest {
                 "   ws ('" + ws.getRoot() + "'){ \n" +
                 "       try { \n" +
                 "           writeFile file: 'foo.txt', text: 'foobar' \n" +
-                "           throw new Exception() \n" +
+                "           error 'error'\n" +
                 "       } catch (err) { \n" +
                 "           currentBuild.result = 'FAILURE' \n" +
                 "       } finally { \n" +
                 "           cleanWs cleanWhenFailure: false \n" +
                 "       } \n" +
                 "   } \n" +
-                "}"));
+                "}", true));
         WorkflowRun run = p.scheduleBuild2(0).get();
         j.assertBuildStatus(Result.FAILURE, run);
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
@@ -373,10 +385,11 @@ public class CleanupTest {
 
         p.getBuildWrappersList().add(
                 new PreBuildCleanup(
-                        Collections.<Pattern>emptyList(),
+                        Collections.emptyList(),
                         false,
                         null,
-                        command));
+                        command,
+                        false));
 
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
 
@@ -392,10 +405,11 @@ public class CleanupTest {
 
         p.getBuildWrappersList().add(
                 new PreBuildCleanup(
-                        Collections.<Pattern>emptyList(),
+                        Collections.emptyList(),
                         false,
                         null,
-                        command));
+                        command,
+                        false));
 
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
 
@@ -414,7 +428,7 @@ public class CleanupTest {
             }
         };
 
-        System.out.println(j.buildAndAssertSuccess(p).getLog());
+        j.buildAndAssertSuccess(p);
 
         Thread.sleep(100);
 
@@ -446,8 +460,7 @@ public class CleanupTest {
         p.getPublishersList().add(wsCleanup);
         FreeStyleBuild b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
-        assertTrue("Deferred wipeout should be disabled",
-                b.getLog().contains("Deferred wipeout is disabled by the job configuration..."));
+        j.assertLogContains("Deferred wipeout is disabled by the job configuration...", b);
 
         // Deferred wipeout disabled
          p = j.jenkins.createProject(FreeStyleProject.class, "sut2");
@@ -457,8 +470,7 @@ public class CleanupTest {
         p.getPublishersList().add(wsCleanup);
         b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
-        assertTrue("Deferred wipeout should be enabled",
-                b.getLog().contains("Deferred wipeout is used..."));
+        j.assertLogContains("Deferred wipeout is used...", b);
 
         // Deferred wipeout default setting
         p = j.jenkins.createProject(FreeStyleProject.class, "sut3");
@@ -467,8 +479,7 @@ public class CleanupTest {
         p.getPublishersList().add(wsCleanup);
         b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
-        assertTrue("Deferred wipeout should be enabled",
-                b.getLog().contains("Deferred wipeout is used..."));
+        j.assertLogContains("Deferred wipeout is used...", b);
 
         // Attach a DisableDeferredWipeout node property to the master node
         j.jenkins.getComputer("").getNode().getNodeProperties().add(new DisableDeferredWipeoutNodeProperty());
@@ -481,8 +492,7 @@ public class CleanupTest {
         p.getPublishersList().add(wsCleanup);
         b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
-        assertTrue("Deferred wipeout should be disabled",
-                b.getLog().contains("Deferred wipeout is disabled by the job configuration..."));
+        j.assertLogContains("Deferred wipeout is disabled by the job configuration...", b);
 
         // Deferred wipeout disabled
         p = j.jenkins.createProject(FreeStyleProject.class, "sut5");
@@ -492,8 +502,7 @@ public class CleanupTest {
         p.getPublishersList().add(wsCleanup);
         b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
-        assertTrue("Deferred wipeout should be disabled on the node",
-                b.getLog().contains("Deferred wipeout is disabled by the node property..."));
+        j.assertLogContains("Deferred wipeout is disabled by the node property...", b);
 
         // Deferred wipeout default setting
         p = j.jenkins.createProject(FreeStyleProject.class, "sut6");
@@ -502,8 +511,7 @@ public class CleanupTest {
         p.getPublishersList().add(wsCleanup);
         b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
-        assertTrue("Deferred wipeout should be disabled on the node",
-                b.getLog().contains("Deferred wipeout is disabled by the node property..."));
+        j.assertLogContains("Deferred wipeout is disabled by the node property...", b);
     }
 
     private void verifyFileExists(String fileName) {
@@ -578,13 +586,13 @@ public class CleanupTest {
         }
     }
 
-    private final class EnhancedTemporaryFolder extends TemporaryFolder {
+    private static final class EnhancedTemporaryFolder extends TemporaryFolder {
         @Override
         public EnhancedFile getRoot() {
             return new EnhancedFile(super.getRoot());
         }
 
-        private final class EnhancedFile extends File {
+        private static final class EnhancedFile extends File {
             public EnhancedFile(File f) {
                 super(f.getPath());
             }
