@@ -578,13 +578,13 @@ public class CleanupTest {
         }
     }
 
-    private final class EnhancedTemporaryFolder extends TemporaryFolder {
+    private static final class EnhancedTemporaryFolder extends TemporaryFolder {
         @Override
         public EnhancedFile getRoot() {
             return new EnhancedFile(super.getRoot());
         }
 
-        private final class EnhancedFile extends File {
+        private static final class EnhancedFile extends File {
             public EnhancedFile(File f) {
                 super(f.getPath());
             }
