@@ -23,13 +23,18 @@
  */
 package hudson.plugins.ws_cleanup;
 
+import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.emptyCollectionOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
-import static org.hamcrest.Matchers.*;
 
 import hudson.FilePath;
 import hudson.Functions;
@@ -39,7 +44,16 @@ import hudson.matrix.MatrixRun;
 import hudson.matrix.MatrixBuild;
 import hudson.matrix.MatrixProject;
 import hudson.matrix.TextAxis;
-import hudson.model.*;
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+import hudson.model.Cause;
+import hudson.model.FreeStyleBuild;
+import hudson.model.FreeStyleProject;
+import hudson.model.ParametersAction;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.model.Result;
+import hudson.model.StringParameterDefinition;
+import hudson.model.StringParameterValue;
 import hudson.tasks.BatchFile;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.Shell;
