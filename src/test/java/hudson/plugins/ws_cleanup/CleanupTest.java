@@ -95,7 +95,7 @@ public class CleanupTest {
         populateWorkspace(p, filename);
 
         p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false,
-                null, Functions.isWindows() ? "cmd /c del %s" : "rm %s"));
+                null, Functions.isWindows() ? "cmd /c del %s" : "rm %s", false));
         j.buildAndAssertSuccess(p);
     }
 
@@ -105,7 +105,7 @@ public class CleanupTest {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         populateWorkspace(p, "content.txt");
 
-        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, null));
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, null, false));
         FreeStyleBuild b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
     }
@@ -144,7 +144,7 @@ public class CleanupTest {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         p.addProperty(new ParametersDefinitionProperty(new StringParameterDefinition("RAND", "")));
         p.setConcurrentBuild(true);
-        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, null));
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, null, false));
         p.getPublishersList().add(wipeoutPublisher());
         p.getBuildersList().add(
                 Functions.isWindows() ?
@@ -219,7 +219,7 @@ public class CleanupTest {
         FilePath post = ws.child("post-build");
         post.touch(0);
 
-        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, command));
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, command, false));
         WsCleanup wsCleanup = new WsCleanup();
         wsCleanup.setNotFailBuild(true);
         wsCleanup.setCleanupMatrixParent(true);
@@ -390,7 +390,8 @@ public class CleanupTest {
                         Collections.emptyList(),
                         false,
                         null,
-                        command));
+                        command,
+                        false));
 
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
 
@@ -409,7 +410,8 @@ public class CleanupTest {
                         Collections.emptyList(),
                         false,
                         null,
-                        command));
+                        command,
+                        false));
 
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
 
