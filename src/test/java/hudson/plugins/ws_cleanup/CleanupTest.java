@@ -80,7 +80,7 @@ public class CleanupTest {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         populateWorkspace(p, filename);
 
-        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false,
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false,
                 null, Functions.isWindows() ? "cmd /c del %s" : "rm %s"));
         j.buildAndAssertSuccess(p);
     }
@@ -91,7 +91,7 @@ public class CleanupTest {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         populateWorkspace(p, "content.txt");
 
-        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false, null, null));
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, null));
         FreeStyleBuild b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
     }
@@ -130,7 +130,7 @@ public class CleanupTest {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         p.addProperty(new ParametersDefinitionProperty(new StringParameterDefinition("RAND", "")));
         p.setConcurrentBuild(true);
-        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false, null, null));
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, null));
         p.getPublishersList().add(wipeoutPublisher());
         p.getBuildersList().add(
                 Functions.isWindows() ?
@@ -205,7 +205,7 @@ public class CleanupTest {
         FilePath post = ws.child("post-build");
         post.touch(0);
 
-        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.<Pattern>emptyList(), false, null, command));
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, command));
         WsCleanup wsCleanup = new WsCleanup();
         wsCleanup.setNotFailBuild(true);
         wsCleanup.setCleanupMatrixParent(true);
@@ -373,7 +373,7 @@ public class CleanupTest {
 
         p.getBuildWrappersList().add(
                 new PreBuildCleanup(
-                        Collections.<Pattern>emptyList(),
+                        Collections.emptyList(),
                         false,
                         null,
                         command));
@@ -392,7 +392,7 @@ public class CleanupTest {
 
         p.getBuildWrappersList().add(
                 new PreBuildCleanup(
-                        Collections.<Pattern>emptyList(),
+                        Collections.emptyList(),
                         false,
                         null,
                         command));
