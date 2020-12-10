@@ -24,7 +24,6 @@
 package hudson.plugins.ws_cleanup;
 
 import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyCollectionOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -227,18 +226,17 @@ public class CleanupTest {
         p.getPublishersList().add(wsCleanup);
 
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
-        String log = build.getLog();
 
         if (Functions.isWindows()) {
-            assertThat(log, containsString("ERROR: Cleanup command 'cmd /c md " + pre.getRemote() + "' failed with code 1"));
-            assertThat(log, containsString("ERROR: Cleanup command 'cmd /c md " + post.getRemote() + "' failed with code 1"));
-            assertThat(log, containsString("A subdirectory or file " + pre.getRemote() + " already exists."));
-            assertThat(log, containsString("A subdirectory or file " + post.getRemote() + " already exists."));
+            j.assertLogContains("ERROR: Cleanup command 'cmd /c md " + pre.getRemote() + "' failed with code 1", build);
+            j.assertLogContains("ERROR: Cleanup command 'cmd /c md " + post.getRemote() + "' failed with code 1", build);
+            j.assertLogContains("A subdirectory or file " + pre.getRemote() + " already exists.", build);
+            j.assertLogContains("A subdirectory or file " + post.getRemote() + " already exists.", build);
         } else {
-            assertThat(log, containsString("ERROR: Cleanup command 'mkdir " + pre.getRemote() + "' failed with code 1"));
-            assertThat(log, containsString("ERROR: Cleanup command 'mkdir " + post.getRemote() + "' failed with code 1"));
-            assertThat(log, containsString("mkdir: cannot create directory"));
-            assertThat(log, containsString("File exists"));
+            j.assertLogContains("ERROR: Cleanup command 'mkdir " + pre.getRemote() + "' failed with code 1", build);
+            j.assertLogContains("ERROR: Cleanup command 'mkdir " + post.getRemote() + "' failed with code 1", build);
+            j.assertLogContains("mkdir: cannot create directory", build);
+            j.assertLogContains("File exists", build);
         }
     }
 
@@ -462,8 +460,7 @@ public class CleanupTest {
         p.getPublishersList().add(wsCleanup);
         FreeStyleBuild b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
-        assertTrue("Deferred wipeout should be disabled",
-                b.getLog().contains("Deferred wipeout is disabled by the job configuration..."));
+        j.assertLogContains("Deferred wipeout is disabled by the job configuration...", b);
 
         // Deferred wipeout disabled
          p = j.jenkins.createProject(FreeStyleProject.class, "sut2");
@@ -473,8 +470,7 @@ public class CleanupTest {
         p.getPublishersList().add(wsCleanup);
         b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
-        assertTrue("Deferred wipeout should be enabled",
-                b.getLog().contains("Deferred wipeout is used..."));
+        j.assertLogContains("Deferred wipeout is used...", b);
 
         // Deferred wipeout default setting
         p = j.jenkins.createProject(FreeStyleProject.class, "sut3");
@@ -483,8 +479,7 @@ public class CleanupTest {
         p.getPublishersList().add(wsCleanup);
         b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
-        assertTrue("Deferred wipeout should be enabled",
-                b.getLog().contains("Deferred wipeout is used..."));
+        j.assertLogContains("Deferred wipeout is used...", b);
 
         // Attach a DisableDeferredWipeout node property to the master node
         j.jenkins.getComputer("").getNode().getNodeProperties().add(new DisableDeferredWipeoutNodeProperty());
@@ -497,8 +492,7 @@ public class CleanupTest {
         p.getPublishersList().add(wsCleanup);
         b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
-        assertTrue("Deferred wipeout should be disabled",
-                b.getLog().contains("Deferred wipeout is disabled by the job configuration..."));
+        j.assertLogContains("Deferred wipeout is disabled by the job configuration...", b);
 
         // Deferred wipeout disabled
         p = j.jenkins.createProject(FreeStyleProject.class, "sut5");
@@ -508,8 +502,7 @@ public class CleanupTest {
         p.getPublishersList().add(wsCleanup);
         b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
-        assertTrue("Deferred wipeout should be disabled on the node",
-                b.getLog().contains("Deferred wipeout is disabled by the node property..."));
+        j.assertLogContains("Deferred wipeout is disabled by the node property...", b);
 
         // Deferred wipeout default setting
         p = j.jenkins.createProject(FreeStyleProject.class, "sut6");
@@ -518,8 +511,7 @@ public class CleanupTest {
         p.getPublishersList().add(wsCleanup);
         b = j.buildAndAssertSuccess(p);
         assertWorkspaceCleanedUp(b);
-        assertTrue("Deferred wipeout should be disabled on the node",
-                b.getLog().contains("Deferred wipeout is disabled by the node property..."));
+        j.assertLogContains("Deferred wipeout is disabled by the node property...", b);
     }
 
     private void verifyFileExists(String fileName) {

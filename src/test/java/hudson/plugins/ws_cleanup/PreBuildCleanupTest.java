@@ -204,8 +204,7 @@ public class PreBuildCleanupTest {
                 null, true));
         FreeStyleBuild build = j.buildAndAssertSuccess(project);
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
-        assertTrue("Deferred wipeout should be disabled",
-                build.getLog().contains("Deferred wipeout is disabled by the job configuration..."));
+        j.assertLogContains("Deferred wipeout is disabled by the job configuration...", build);
 
         // Deferred wipeout disabled
         project = j.createFreeStyleProject("project2");
@@ -215,8 +214,7 @@ public class PreBuildCleanupTest {
                 null, false));
         build = j.buildAndAssertSuccess(project);
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
-        assertTrue("Deferred wipeout should be enabled",
-                build.getLog().contains("Deferred wipeout is used..."));
+        j.assertLogContains("Deferred wipeout is used...", build);
 
         // Deferred wipeout default setting
         project = j.createFreeStyleProject("project3");
@@ -225,8 +223,7 @@ public class PreBuildCleanupTest {
                 new PreBuildCleanup(new ArrayList<>(), false, null,null, false));
         build = j.buildAndAssertSuccess(project);
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
-        assertTrue("Deferred wipeout should be enabled by default",
-                build.getLog().contains("Deferred wipeout is used..."));
+        j.assertLogContains("Deferred wipeout is used...", build);
 
         // Attach a DisableDeferredWipeout node property to the master node
         j.jenkins.getComputer("").getNode().getNodeProperties().add(new DisableDeferredWipeoutNodeProperty());
@@ -239,8 +236,7 @@ public class PreBuildCleanupTest {
                         null, true));
         build = j.buildAndAssertSuccess(project);
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
-        assertTrue("Deferred wipeout should be disabled on the node",
-                build.getLog().contains("Deferred wipeout is disabled by the job configuration..."));
+        j.assertLogContains("Deferred wipeout is disabled by the job configuration...", build);
 
         // Deferred wipeout disabled
         project = j.createFreeStyleProject("project5");
@@ -250,8 +246,7 @@ public class PreBuildCleanupTest {
                         null, false));
         build = j.buildAndAssertSuccess(project);
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
-        assertTrue("Deferred wipeout should be disabled on the node",
-                build.getLog().contains("Deferred wipeout is disabled by the node property..."));
+        j.assertLogContains("Deferred wipeout is disabled by the node property...", build);
 
         // Deferred wipeout default setting
         project = j.createFreeStyleProject("project6");
@@ -260,7 +255,6 @@ public class PreBuildCleanupTest {
                 new PreBuildCleanup(new ArrayList<>(), false, null,null, false));
         build = j.buildAndAssertSuccess(project);
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
-        assertTrue("Deferred wipeout should be disabled on the node",
-                build.getLog().contains("Deferred wipeout is disabled by the node property..."));
+        j.assertLogContains("Deferred wipeout is disabled by the node property...", build);
     }
 }
