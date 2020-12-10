@@ -24,7 +24,6 @@
 package hudson.plugins.ws_cleanup;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystemException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
