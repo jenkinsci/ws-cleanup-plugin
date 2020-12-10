@@ -126,8 +126,8 @@ public class JobDslTest {
 
         PreBuildCleanup pbc = getJob("emptyPreBuildCleanup").getBuildWrappersList().get(PreBuildCleanup.class);
         assertEquals("", pbc.getCleanupParameter());
-        assertEquals(false, pbc.getDeleteDirs());
-        assertEquals(false, pbc.getDisableDeferredWipeout());
+        assertFalse(pbc.getDeleteDirs());
+        assertFalse(pbc.getDisableDeferredWipeout());
         assertEquals("", pbc.getExternalDelete());
         assertThat(pbc.getPatterns(), emptyIterable());
     }
@@ -146,8 +146,8 @@ public class JobDslTest {
 
         PreBuildCleanup pbc = getJob("examplePreBuildCleanup").getBuildWrappersList().get(PreBuildCleanup.class);
         assertEquals("CLEANUP", pbc.getCleanupParameter());
-        assertEquals(true, pbc.getDeleteDirs());
-        assertEquals(false, pbc.getDisableDeferredWipeout());
+        assertTrue(pbc.getDeleteDirs());
+        assertFalse(pbc.getDisableDeferredWipeout());
         assertEquals("", pbc.getExternalDelete());
 
         List<Pattern> patterns = pbc.getPatterns();
