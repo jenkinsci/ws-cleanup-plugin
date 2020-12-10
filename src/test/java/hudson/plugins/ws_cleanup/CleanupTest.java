@@ -428,7 +428,7 @@ public class CleanupTest {
             }
         };
 
-        System.out.println(j.buildAndAssertSuccess(p).getLog());
+        j.buildAndAssertSuccess(p);
 
         Thread.sleep(100);
 
