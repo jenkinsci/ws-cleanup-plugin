@@ -253,7 +253,7 @@ public class CleanupTest {
                 "           step([$class: 'WsCleanup']) \n" +
                 "       } \n" +
                 "  } \n" +
-                "}"));
+                "}", true));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
         j.assertLogContains("[WS-CLEANUP] done", run);
@@ -275,7 +275,7 @@ public class CleanupTest {
                 "           step([$class: 'WsCleanup', patterns: [[pattern: 'bar.*', type: 'INCLUDE']]]) \n" +
                 "       } \n" +
                 "   } \n" +
-                "}"));
+                "}", true));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
         j.assertLogContains("[WS-CLEANUP] done", run);
@@ -299,7 +299,7 @@ public class CleanupTest {
                 "			step ([$class: 'WsCleanup', cleanWhenFailure: false]) \n" +
                 "       } \n" +
                 "   } \n" +
-                "}"));
+                "}", true));
         WorkflowRun build = p.scheduleBuild2(0).get();
         j.assertBuildStatus(Result.FAILURE, build);
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", build);
@@ -321,7 +321,7 @@ public class CleanupTest {
                 "           cleanWs() \n" +
                 "       } \n" +
                 "  } \n" +
-                "}"));
+                "}", true));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
         j.assertLogContains("[WS-CLEANUP] done", run);
@@ -343,7 +343,7 @@ public class CleanupTest {
                 "           cleanWs patterns: [[pattern: 'bar.*', type: 'INCLUDE']] \n" +
                 "       } \n" +
                 "   } \n" +
-                "}"));
+                "}", true));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
         j.assertLogContains("[WS-CLEANUP] done", run);
@@ -360,14 +360,14 @@ public class CleanupTest {
                 "   ws ('" + ws.getRoot() + "'){ \n" +
                 "       try { \n" +
                 "           writeFile file: 'foo.txt', text: 'foobar' \n" +
-                "           throw new Exception() \n" +
+                "           error 'error'\n" +
                 "       } catch (err) { \n" +
                 "           currentBuild.result = 'FAILURE' \n" +
                 "       } finally { \n" +
                 "           cleanWs cleanWhenFailure: false \n" +
                 "       } \n" +
                 "   } \n" +
-                "}"));
+                "}", true));
         WorkflowRun run = p.scheduleBuild2(0).get();
         j.assertBuildStatus(Result.FAILURE, run);
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
