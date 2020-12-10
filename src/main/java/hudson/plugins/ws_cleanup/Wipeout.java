@@ -95,7 +95,7 @@ import javax.annotation.Nonnull;
         }
 
         @Nonnull public State dispose() throws Throwable {
-            Jenkins j = Jenkins.getInstance();
+            Jenkins j = Jenkins.getInstanceOrNull();
             if (j == null) return State.TO_DISPOSE; // Going down?
 
             // We grab the computer and file path here each time.  Caching the file path is
