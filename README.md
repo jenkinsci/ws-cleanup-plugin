@@ -42,6 +42,42 @@ job("foo") {
 }
 ```
 
+## Declarative pipeline
+
+Examples:
+
+```groovy
+pipeline { 
+    agent any
+    options {
+        // This is required if you want to clean before build
+        skipDefaultCheckout(true)
+    }
+    stages {
+        stage('Build') {
+            steps {
+                // Clean before build
+                cleanWs()
+                // We need to explicitly checkout from SCM here
+                checkout scm
+                echo "Building ${env.JOB_NAME}..."
+            }
+        }
+    }
+    post {
+        // Clean after build
+        always {
+            cleanWs(cleanWhenNotBuilt: false,
+                    deleteDirs: true,
+                    disableDeferredWipeout: true,
+                    notFailBuild: true,
+                    patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
+                               [pattern: '.propsfile', type: 'EXCLUDE']])
+        }
+    }
+}
+```
+
 ## Pre-pipeline
 
 The plugin provides a build wrapper (*Delete workspace before build starts*) and a post build step (*Delete workspace when build is done*).  These steps will allow you to configure which files will be deleted and in what circumstances.  The post build step can also take the build status into account.
