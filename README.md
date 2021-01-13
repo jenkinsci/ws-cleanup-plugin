@@ -42,6 +42,53 @@ job("foo") {
 }
 ```
 
+## Declarative pipeline
+
+The step `cleanWs` is available for use in a declarative pipeline. When you want
+to clean the workspace after the build you can add this step under a suitable
+condition in the [post](https://www.jenkins.io/doc/book/pipeline/syntax/#post)
+section of your pipeline. If you want to clean the workspace before the build
+starts, you need to add some extra configuration to be able to clean before the
+sources are checked out from SCM. See the examples below for details.
+
+The snippet generator that is built into Jenkins can assist you with what
+configuration options are available. Just click on the "Pipeline Syntax" button
+in your pipeline job, and select `cleanWs` from the "Sample Step" drop-down.  
+
+Examples:
+
+```groovy
+pipeline { 
+    agent any
+    options {
+        // This is required if you want to clean before build
+        skipDefaultCheckout(true)
+    }
+    stages {
+        stage('Build') {
+            steps {
+                // Clean before build
+                cleanWs()
+                // We need to explicitly checkout from SCM here
+                checkout scm
+                echo "Building ${env.JOB_NAME}..."
+            }
+        }
+    }
+    post {
+        // Clean after build
+        always {
+            cleanWs(cleanWhenNotBuilt: false,
+                    deleteDirs: true,
+                    disableDeferredWipeout: true,
+                    notFailBuild: true,
+                    patterns: [[pattern: '.gitignore', type: 'INCLUDE'],
+                               [pattern: '.propsfile', type: 'EXCLUDE']])
+        }
+    }
+}
+```
+
 ## Pre-pipeline
 
 The plugin provides a build wrapper (*Delete workspace before build starts*) and a post build step (*Delete workspace when build is done*).  These steps will allow you to configure which files will be deleted and in what circumstances.  The post build step can also take the build status into account.
