@@ -44,6 +44,17 @@ job("foo") {
 
 ## Declarative pipeline
 
+The step `cleanWs` is available for use in a declarative pipeline. When you want
+to clean the workspace after the build you can add this step under a suitable
+condition in the [post](https://www.jenkins.io/doc/book/pipeline/syntax/#post)
+section of your pipeline. If you want to clean the workspace before the build
+starts, you need to add some extra configuration to be able to clean before the
+sources are checked out from SCM. See the examples below for details.
+
+The snippet generator that is built into Jenkins can assist you with what
+configuration options are available. Just click on the "Pipeline Syntax" button
+in your pipeline job, and select `cleanWs` from the "Sample Step" drop-down.  
+
 Examples:
 
 ```groovy
