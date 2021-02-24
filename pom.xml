@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>ws-cleanup</artifactId>
-  <version>0.39</version>
+  <version>${revision}${changelist}</version>
   <packaging>hpi</packaging>
 
   <name>Jenkins Workspace Cleanup Plugin</name>
@@ -38,11 +38,11 @@
     <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
     <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
     <url>https://github.com/${gitHubRepo}</url>
-    <tag>ws-cleanup-0.39</tag>
+    <tag>${scmTag}</tag>
   </scm>
 
   <properties>
-    <revision>0.39</revision>
+    <revision>0.40</revision>
     <changelist>-SNAPSHOT</changelist>
     <jenkins.version>2.164.3</jenkins.version>
     <java.level>8</java.level>
