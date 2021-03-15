@@ -16,6 +16,7 @@ import hudson.plugins.ws_cleanup.Pattern.PatternType;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.EnvironmentVariablesNodeProperty.Entry;
 
+import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -61,6 +62,10 @@ public class PreBuildCleanupTest {
     @Test
     @LocalData
     public void testCleanWorkspaceByDeleteCommandInNodePropertyIncludeDirectories() throws Exception {
+        Assume.assumeFalse(
+                "TODO Windows ACI agents do not have enough memory to run this test",
+                Functions.isWindows());
+
         FreeStyleProject project = j.createFreeStyleProject("project1");
         Slave slave = j.createOnlineSlave();
         project.setAssignedLabel(slave.getSelfLabel());
@@ -92,6 +97,10 @@ public class PreBuildCleanupTest {
     @Test
     @LocalData
     public void testCleanWorkspaceByDeleteCommandInNodePropertyWithoutDirectory() throws Exception {
+        Assume.assumeFalse(
+                "TODO Windows ACI agents do not have enough memory to run this test",
+                Functions.isWindows());
+
         FreeStyleProject project = j.createFreeStyleProject("project1");
         Slave slave = j.createOnlineSlave();
         project.setAssignedLabel(slave.getSelfLabel());
