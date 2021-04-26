@@ -24,10 +24,10 @@ DEALINGS IN THE SOFTWARE. -->
                 </div>
             </f:repeatable>
         </f:entry>
-        <f:entry title="${%Apply pattern also on directories}">
+        <f:entry title="${%Apply pattern also on directories}" help="/plugin/ws-cleanup/help/applyPatternAlsoOnDirectories.html">
             <f:checkbox field="deleteDirs" checked="${it.deleteDirs}" />
         </f:entry>
-        <f:entry title="${%Clean when status is}">
+        <f:entry title="${%Clean when status is}" help="/plugin/ws-cleanup/help/cleanWhenStatusIs.html">
             <f:checkbox field="cleanWhenSuccess" checked="${it.cleanWhenSuccess}" default="true" title="${%Success}"/>
             <f:checkbox field="cleanWhenUnstable" checked="${it.cleanWhenUnstable}" default="true" title="${%Unstable}"/>
             <f:checkbox field="cleanWhenFailure" checked="${it.cleanWhenFailure}" default="true" title="${%Failure}"/>

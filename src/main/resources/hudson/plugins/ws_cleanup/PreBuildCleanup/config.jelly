@@ -24,7 +24,7 @@ DEALINGS IN THE SOFTWARE. -->
                 </div>
             </f:repeatable>
         </f:entry>
-        <f:entry title="${%Apply pattern also on directories}">
+        <f:entry title="${%Apply pattern also on directories}" help="/plugin/ws-cleanup/help/applyPatternAlsoOnDirectories.html">
             <f:checkbox field="deleteDirs" checked="${it.deleteDirs}" />
         </f:entry>
         <f:entry title="${%Check parameter}" help="/plugin/ws-cleanup/help/cleanupParameter.html">
