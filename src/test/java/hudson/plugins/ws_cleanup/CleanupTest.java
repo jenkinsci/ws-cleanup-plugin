@@ -35,6 +35,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+
 import hudson.FilePath;
 import hudson.Functions;
 import hudson.Launcher;
@@ -579,6 +581,7 @@ public class CleanupTest {
         }
 
         private static final class Descriptor extends hudson.model.Descriptor<BuildWrapper> {
+            @NonNull
             @Override
             public String getDisplayName() {
                 return "Matrix workspace populator";

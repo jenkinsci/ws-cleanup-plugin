@@ -67,7 +67,7 @@ import java.util.logging.Logger;
         try {
             workspace.renameTo(deleteMe);
         } catch (FileSystemException expected) {
-            errmsg += " " + expected.toString();
+            errmsg += " " + expected;
         }
 
         if (deleteMe.exists()) {

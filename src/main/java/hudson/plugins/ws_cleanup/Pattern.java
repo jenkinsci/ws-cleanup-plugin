@@ -1,5 +1,7 @@
 package hudson.plugins.ws_cleanup;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+
 import hudson.Extension;
 import hudson.model.Describable;
 import hudson.model.Descriptor;
@@ -55,6 +57,7 @@ public class Pattern implements Serializable, Describable<Pattern> {
                 new ListBoxModel.Option("Exclude", PatternType.EXCLUDE.toString())
         );
 
+        @NonNull
         @Override
         public String getDisplayName(){
             return "Directory scanner pattern";
