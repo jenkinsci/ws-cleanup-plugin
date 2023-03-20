@@ -1,0 +1,18 @@
+//The global script scope
+def ctx = context(scope: scriptScope())
+contributor(ctx) {
+    method(name: 'cleanWs', type: 'void', namedParams: [
+            parameter(name: 'fileId', type: 'java.lang.Boolean'),
+            parameter(name: 'cleanWhenAborted', type: 'java.lang.Boolean'),
+            parameter(name: 'cleanWhenFailure', type: 'java.lang.Boolean'),
+            parameter(name: 'cleanWhenNotBuilt', type: 'java.lang.Boolean'),
+            parameter(name: 'cleanWhenSuccess', type: 'java.lang.Boolean'),
+            parameter(name: 'cleanWhenUnstable', type: 'java.lang.Boolean'),
+            parameter(name: 'cleanupMatrixParent', type: 'java.lang.Boolean'),
+            parameter(name: 'deleteDirs', type: 'java.lang.Boolean'),
+            parameter(name: 'disableDeferredWipeout', type: 'java.lang.Boolean'),
+            parameter(name: 'externalDelete', type: 'java.lang.String'),
+            parameter(name: 'notFailBuild', type: 'java.lang.Boolean'),
+            parameter(name: 'skipWhenFailed', type: 'java.lang.Boolean'),],
+            doc: 'Delete workspace when build is done')
+}
