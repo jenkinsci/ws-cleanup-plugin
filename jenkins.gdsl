@@ -13,6 +13,7 @@ contributor(ctx) {
             parameter(name: 'disableDeferredWipeout', type: 'java.lang.Boolean'),
             parameter(name: 'externalDelete', type: 'java.lang.String'),
             parameter(name: 'notFailBuild', type: 'java.lang.Boolean'),
-            parameter(name: 'skipWhenFailed', type: 'java.lang.Boolean'),],
+            parameter(name: 'skipWhenFailed', type: 'java.lang.Boolean'),
+            parameter(name: 'patterns', type: 'java.lang.Object')],
             doc: 'Delete workspace when build is done')
 }
