@@ -29,7 +29,6 @@ import hudson.model.Node;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -46,12 +45,10 @@ import java.util.List;
             String externalDelete,
             TaskListener listener,
             Run<?, ?> build,
-            boolean disableDeferredWipeout
-    ) {
+            boolean disableDeferredWipeout) {
         boolean wipeout = (patterns == null || patterns.isEmpty())
                 && (externalDelete == null || externalDelete.trim().isEmpty())
-                && !disableDeferredWipeout
-        ;
+                && !disableDeferredWipeout;
 
         Node node = null;
         if (build instanceof AbstractBuild) {
@@ -59,21 +56,20 @@ import java.util.List;
         }
 
         if (disableDeferredWipeout) {
-            listener.getLogger().append(
-                    WsCleanup.LOG_PREFIX + "Deferred wipeout is disabled by the job configuration...\n");
+            listener.getLogger()
+                    .append(WsCleanup.LOG_PREFIX + "Deferred wipeout is disabled by the job configuration...\n");
         }
 
         if (wipeout && node != null) {
             wipeout = node.getNodeProperties().get(DisableDeferredWipeoutNodeProperty.class) == null;
             if (!wipeout) {
-                listener.getLogger().append(
-                        WsCleanup.LOG_PREFIX + "Deferred wipeout is disabled by the node property...\n");
+                listener.getLogger()
+                        .append(WsCleanup.LOG_PREFIX + "Deferred wipeout is disabled by the node property...\n");
             }
         }
 
         if (wipeout) {
-            listener.getLogger().append(
-                    WsCleanup.LOG_PREFIX + "Deferred wipeout is used...\n");
+            listener.getLogger().append(WsCleanup.LOG_PREFIX + "Deferred wipeout is used...\n");
             return Wipeout.getInstance();
         }
 

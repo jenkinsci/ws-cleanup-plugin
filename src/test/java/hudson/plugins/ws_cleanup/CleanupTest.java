@@ -36,7 +36,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-
 import hudson.FilePath;
 import hudson.Functions;
 import hudson.Launcher;
@@ -58,7 +57,13 @@ import hudson.model.StringParameterValue;
 import hudson.tasks.BatchFile;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.Shell;
-
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Future;
 import org.hamcrest.Matchers;
 import org.jenkinsci.plugins.resourcedisposer.AsyncResourceDisposer;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
@@ -70,14 +75,6 @@ import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestBuilder;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Future;
 
 public class CleanupTest {
 
@@ -95,8 +92,13 @@ public class CleanupTest {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         populateWorkspace(p, filename);
 
-        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false,
-                null, Functions.isWindows() ? "cmd /c del %s" : "rm %s", false));
+        p.getBuildWrappersList()
+                .add(new PreBuildCleanup(
+                        Collections.emptyList(),
+                        false,
+                        null,
+                        Functions.isWindows() ? "cmd /c del %s" : "rm %s",
+                        false));
         j.buildAndAssertSuccess(p);
     }
 
@@ -147,29 +149,28 @@ public class CleanupTest {
         p.setConcurrentBuild(true);
         p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, null, false));
         p.getPublishersList().add(wipeoutPublisher());
-        p.getBuildersList().add(
-                Functions.isWindows() ?
-                    new BatchFile("echo =$BUILD_NUMBER= > marker;" +
-                            // Something hopefully expensive to delete
-                        "cmd /x /c mkdir a\\b\\c\\d\\e\\f\\g\\h\\i\\j\\k\\l\\m\\n\\o\\p\\q\\r\\s\\t\\u\\v\\w\\x\\y\\z\\a\\b\\c\\d\\e\\f\\g\\h\\j\\k\\l\\m\\n\\o\\p\\q\\r\\s\\u\\v\\w\\x\\y\\z;" +
-                        "sleep $(($BUILD_NUMBER%5));" +
-                        "grep =$BUILD_NUMBER= marker") :
-                    new Shell("echo =$BUILD_NUMBER= > marker;" +
-                        // Something hopefully expensive to delete
-                        "mkdir -p a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z/a/b/c/d/e/f/g/h/j/k/l/m/n/o/p/q/r/s//u/v/w/x/y/z/;" +
-                        "sleep $(($BUILD_NUMBER%5));" +
-                        "grep =$BUILD_NUMBER= marker"
-        ));
+        p.getBuildersList()
+                .add(
+                        Functions.isWindows()
+                                ? new BatchFile("echo =$BUILD_NUMBER= > marker;" +
+                                        // Something hopefully expensive to delete
+                                        "cmd /x /c mkdir a\\b\\c\\d\\e\\f\\g\\h\\i\\j\\k\\l\\m\\n\\o\\p\\q\\r\\s\\t\\u\\v\\w\\x\\y\\z\\a\\b\\c\\d\\e\\f\\g\\h\\j\\k\\l\\m\\n\\o\\p\\q\\r\\s\\u\\v\\w\\x\\y\\z;"
+                                        + "sleep $(($BUILD_NUMBER%5));"
+                                        + "grep =$BUILD_NUMBER= marker")
+                                : new Shell("echo =$BUILD_NUMBER= > marker;" +
+                                        // Something hopefully expensive to delete
+                                        "mkdir -p a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z/a/b/c/d/e/f/g/h/j/k/l/m/n/o/p/q/r/s//u/v/w/x/y/z/;"
+                                        + "sleep $(($BUILD_NUMBER%5));"
+                                        + "grep =$BUILD_NUMBER= marker"));
 
         List<Future<FreeStyleBuild>> futureBuilds = new ArrayList<>(ITERATIONS);
 
         for (int i = 0; i < ITERATIONS; i++) {
-            futureBuilds.add(p.scheduleBuild2(0, (Cause) null, new ParametersAction(
-                    new StringParameterValue("RAND", Integer.toString(i))
-            )));
+            futureBuilds.add(p.scheduleBuild2(
+                    0, (Cause) null, new ParametersAction(new StringParameterValue("RAND", Integer.toString(i)))));
         }
 
-        for (Future<FreeStyleBuild> fb: futureBuilds) {
+        for (Future<FreeStyleBuild> fb : futureBuilds) {
             j.assertBuildStatusSuccess(fb.get());
         }
     }
@@ -231,7 +232,8 @@ public class CleanupTest {
 
         if (Functions.isWindows()) {
             j.assertLogContains("ERROR: Cleanup command 'cmd /c md " + pre.getRemote() + "' failed with code 1", build);
-            j.assertLogContains("ERROR: Cleanup command 'cmd /c md " + post.getRemote() + "' failed with code 1", build);
+            j.assertLogContains(
+                    "ERROR: Cleanup command 'cmd /c md " + post.getRemote() + "' failed with code 1", build);
             j.assertLogContains("A subdirectory or file " + pre.getRemote() + " already exists.", build);
             j.assertLogContains("A subdirectory or file " + post.getRemote() + " already exists.", build);
         } else {
@@ -246,16 +248,17 @@ public class CleanupTest {
     @Issue("JENKINS-28454")
     public void pipelineWorkspaceCleanup() throws Exception {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
-        p.setDefinition(new CpsFlowDefinition("" +
-                "node { \n" +
-                "   ws ('" + ws.getRoot() + "') { \n" +
-                "       try { \n" +
-                "           writeFile file: 'foo.txt', text: 'foobar' \n" +
-                "       } finally { \n" +
-                "           step([$class: 'WsCleanup']) \n" +
-                "       } \n" +
-                "  } \n" +
-                "}", true));
+        p.setDefinition(new CpsFlowDefinition(
+                "" + "node { \n"
+                        + "   ws ('"
+                        + ws.getRoot() + "') { \n" + "       try { \n"
+                        + "           writeFile file: 'foo.txt', text: 'foobar' \n"
+                        + "       } finally { \n"
+                        + "           step([$class: 'WsCleanup']) \n"
+                        + "       } \n"
+                        + "  } \n"
+                        + "}",
+                true));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
         j.assertLogContains("[WS-CLEANUP] done", run);
@@ -267,17 +270,18 @@ public class CleanupTest {
     @Issue("JENKINS-28454")
     public void pipelineWorkspaceCleanupUsingPattern() throws Exception {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
-        p.setDefinition(new CpsFlowDefinition("" +
-                "node { \n" +
-                "   ws ('" + ws.getRoot() + "') { \n" +
-                "       try { \n" +
-                "           writeFile file: 'foo.txt', text: 'first file' \n" +
-                "           writeFile file: 'bar.txt', text: 'second file' \n" +
-                "       } finally { \n" +
-                "           step([$class: 'WsCleanup', patterns: [[pattern: 'bar.*', type: 'INCLUDE']]]) \n" +
-                "       } \n" +
-                "   } \n" +
-                "}", true));
+        p.setDefinition(new CpsFlowDefinition(
+                "" + "node { \n"
+                        + "   ws ('"
+                        + ws.getRoot() + "') { \n" + "       try { \n"
+                        + "           writeFile file: 'foo.txt', text: 'first file' \n"
+                        + "           writeFile file: 'bar.txt', text: 'second file' \n"
+                        + "       } finally { \n"
+                        + "           step([$class: 'WsCleanup', patterns: [[pattern: 'bar.*', type: 'INCLUDE']]]) \n"
+                        + "       } \n"
+                        + "   } \n"
+                        + "}",
+                true));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
         j.assertLogContains("[WS-CLEANUP] done", run);
@@ -289,19 +293,20 @@ public class CleanupTest {
     @Issue("JENKINS-28454")
     public void pipelineWorkspaceCleanupUnlessBuildFails() throws Exception {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
-        p.setDefinition(new CpsFlowDefinition("" +
-                "node { \n" +
-                "   ws ('" + ws.getRoot() + "'){ \n" +
-                "       try { \n" +
-                "           writeFile file: 'foo.txt', text: 'foobar' \n" +
-                "			throw new Exception() \n" +
-                "		} catch (err) { \n" +
-                "			currentBuild.result = 'FAILURE' \n" +
-                "       } finally { \n" +
-                "			step ([$class: 'WsCleanup', cleanWhenFailure: false]) \n" +
-                "       } \n" +
-                "   } \n" +
-                "}", true));
+        p.setDefinition(new CpsFlowDefinition(
+                "" + "node { \n"
+                        + "   ws ('"
+                        + ws.getRoot() + "'){ \n" + "       try { \n"
+                        + "           writeFile file: 'foo.txt', text: 'foobar' \n"
+                        + "			throw new Exception() \n"
+                        + "		} catch (err) { \n"
+                        + "			currentBuild.result = 'FAILURE' \n"
+                        + "       } finally { \n"
+                        + "			step ([$class: 'WsCleanup', cleanWhenFailure: false]) \n"
+                        + "       } \n"
+                        + "   } \n"
+                        + "}",
+                true));
         WorkflowRun build = p.scheduleBuild2(0).get();
         j.assertBuildStatus(Result.FAILURE, build);
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", build);
@@ -314,16 +319,17 @@ public class CleanupTest {
     @Issue("JENKINS-37054")
     public void symbolAnnotationWorkspaceCleanup() throws Exception {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
-        p.setDefinition(new CpsFlowDefinition("" +
-                "node { \n" +
-                "   ws ('" + ws.getRoot() + "') { \n" +
-                "       try { \n" +
-                "           writeFile file: 'foo.txt', text: 'foobar' \n" +
-                "       } finally { \n" +
-                "           cleanWs() \n" +
-                "       } \n" +
-                "  } \n" +
-                "}", true));
+        p.setDefinition(new CpsFlowDefinition(
+                "" + "node { \n"
+                        + "   ws ('"
+                        + ws.getRoot() + "') { \n" + "       try { \n"
+                        + "           writeFile file: 'foo.txt', text: 'foobar' \n"
+                        + "       } finally { \n"
+                        + "           cleanWs() \n"
+                        + "       } \n"
+                        + "  } \n"
+                        + "}",
+                true));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
         j.assertLogContains("[WS-CLEANUP] done", run);
@@ -335,17 +341,18 @@ public class CleanupTest {
     @Issue("JENKINS-37054")
     public void symbolWorkspaceCleanupAnnotationUsingPattern() throws Exception {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
-        p.setDefinition(new CpsFlowDefinition("" +
-                "node { \n" +
-                "   ws ('" + ws.getRoot() + "') { \n" +
-                "       try { \n" +
-                "           writeFile file: 'foo.txt', text: 'first file' \n" +
-                "           writeFile file: 'bar.txt', text: 'second file' \n" +
-                "       } finally { \n" +
-                "           cleanWs patterns: [[pattern: 'bar.*', type: 'INCLUDE']] \n" +
-                "       } \n" +
-                "   } \n" +
-                "}", true));
+        p.setDefinition(new CpsFlowDefinition(
+                "" + "node { \n"
+                        + "   ws ('"
+                        + ws.getRoot() + "') { \n" + "       try { \n"
+                        + "           writeFile file: 'foo.txt', text: 'first file' \n"
+                        + "           writeFile file: 'bar.txt', text: 'second file' \n"
+                        + "       } finally { \n"
+                        + "           cleanWs patterns: [[pattern: 'bar.*', type: 'INCLUDE']] \n"
+                        + "       } \n"
+                        + "   } \n"
+                        + "}",
+                true));
         WorkflowRun run = j.assertBuildStatusSuccess(p.scheduleBuild2(0));
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
         j.assertLogContains("[WS-CLEANUP] done", run);
@@ -357,19 +364,20 @@ public class CleanupTest {
     @Issue("JENKINS-37054")
     public void symbolAnnotationWorkspaceCleanupUnlessBuildFails() throws Exception {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
-        p.setDefinition(new CpsFlowDefinition("" +
-                "node { \n" +
-                "   ws ('" + ws.getRoot() + "'){ \n" +
-                "       try { \n" +
-                "           writeFile file: 'foo.txt', text: 'foobar' \n" +
-                "           error 'error'\n" +
-                "       } catch (err) { \n" +
-                "           currentBuild.result = 'FAILURE' \n" +
-                "       } finally { \n" +
-                "           cleanWs cleanWhenFailure: false \n" +
-                "       } \n" +
-                "   } \n" +
-                "}", true));
+        p.setDefinition(new CpsFlowDefinition(
+                "" + "node { \n"
+                        + "   ws ('"
+                        + ws.getRoot() + "'){ \n" + "       try { \n"
+                        + "           writeFile file: 'foo.txt', text: 'foobar' \n"
+                        + "           error 'error'\n"
+                        + "       } catch (err) { \n"
+                        + "           currentBuild.result = 'FAILURE' \n"
+                        + "       } finally { \n"
+                        + "           cleanWs cleanWhenFailure: false \n"
+                        + "       } \n"
+                        + "   } \n"
+                        + "}",
+                true));
         WorkflowRun run = p.scheduleBuild2(0).get();
         j.assertBuildStatus(Result.FAILURE, run);
         j.assertLogContains("[WS-CLEANUP] Deleting project workspace...", run);
@@ -385,13 +393,7 @@ public class CleanupTest {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         populateWorkspace(p, "content.txt");
 
-        p.getBuildWrappersList().add(
-                new PreBuildCleanup(
-                        Collections.emptyList(),
-                        false,
-                        null,
-                        command,
-                        false));
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, command, false));
 
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
 
@@ -405,13 +407,7 @@ public class CleanupTest {
         FreeStyleProject p = j.jenkins.createProject(FreeStyleProject.class, "sut");
         populateWorkspace(p, "content.txt");
 
-        p.getBuildWrappersList().add(
-                new PreBuildCleanup(
-                        Collections.emptyList(),
-                        false,
-                        null,
-                        command,
-                        false));
+        p.getBuildWrappersList().add(new PreBuildCleanup(Collections.emptyList(), false, null, command, false));
 
         FreeStyleBuild build = j.buildAndAssertSuccess(p);
 
@@ -425,7 +421,8 @@ public class CleanupTest {
         p.getPublishersList().add(CleanupTest.wipeoutPublisher());
 
         Wipeout.INSTANCE = new Wipeout() {
-            @Override void performDelete(FilePath workspace) throws IOException {
+            @Override
+            void performDelete(FilePath workspace) throws IOException {
                 throw new IOException("BOOM!");
             }
         };
@@ -465,7 +462,7 @@ public class CleanupTest {
         j.assertLogContains("Deferred wipeout is disabled by the job configuration...", b);
 
         // Deferred wipeout disabled
-         p = j.jenkins.createProject(FreeStyleProject.class, "sut2");
+        p = j.jenkins.createProject(FreeStyleProject.class, "sut2");
         p.getBuildersList().add(getTouchBuilder("content.txt"));
         wsCleanup = new WsCleanup();
         wsCleanup.setDisableDeferredWipeout(false);
@@ -533,8 +530,9 @@ public class CleanupTest {
 
     private TestBuilder getTouchBuilder(String filename) {
         return new TestBuilder() {
-            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
-                                   BuildListener listener) throws InterruptedException, IOException {
+            @Override
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+                    throws InterruptedException, IOException {
                 build.getWorkspace().child(filename).touch(0);
                 return true;
             }
@@ -550,10 +548,14 @@ public class CleanupTest {
 
     private void assertWorkspaceCleanedUp(AbstractBuild<?, ?> b) throws Exception {
         FilePath workspace = b.getWorkspace();
-        if (workspace == null) return; // removed
+        if (workspace == null) {
+            return; // removed
+        }
 
         List<FilePath> files = workspace.list();
-        if (files == null) return; // removed
+        if (files == null) {
+            return; // removed
+        }
 
         assertTrue("Workspace contains: " + files, files.isEmpty());
     }
@@ -565,7 +567,8 @@ public class CleanupTest {
      */
     private static final class MatrixWsPopulator extends BuildWrapper {
         @Override
-        public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+        public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener)
+                throws IOException, InterruptedException {
             build.getWorkspace().child("content.txt").touch(0);
             if (build instanceof MatrixRun) {
                 MatrixBuild mb = ((MatrixRun) build).getParentBuild();

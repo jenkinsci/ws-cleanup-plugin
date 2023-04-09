@@ -1,19 +1,15 @@
 package hudson.plugins.ws_cleanup;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-
 import hudson.Extension;
 import hudson.model.Describable;
 import hudson.model.Descriptor;
 import hudson.util.ListBoxModel;
-
+import java.io.Serializable;
 import jenkins.model.Jenkins;
-
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.io.Serializable;
 
 /**
  * @author <a href="mailto:nicolas.deloof@cloudbees.com">Nicolas De loof</a>
@@ -30,17 +26,18 @@ public class Pattern implements Serializable, Describable<Pattern> {
         this.type = type;
     }
 
-    public Object readResolve(){
-        if(type == null)
+    public Object readResolve() {
+        if (type == null) {
             type = PatternType.INCLUDE;
+        }
         return this;
     }
-    
+
     public String getPattern() {
         return pattern;
     }
-    
-    public PatternType getType(){
+
+    public PatternType getType() {
         return type;
     }
 
@@ -50,16 +47,15 @@ public class Pattern implements Serializable, Describable<Pattern> {
     }
 
     @Extension
-    public static final class DescriptorImpl extends Descriptor<Pattern>{
+    public static final class DescriptorImpl extends Descriptor<Pattern> {
 
         private static final ListBoxModel TYPES = new ListBoxModel(
                 new ListBoxModel.Option("Include", PatternType.INCLUDE.toString()),
-                new ListBoxModel.Option("Exclude", PatternType.EXCLUDE.toString())
-        );
+                new ListBoxModel.Option("Exclude", PatternType.EXCLUDE.toString()));
 
         @NonNull
         @Override
-        public String getDisplayName(){
+        public String getDisplayName() {
             return "Directory scanner pattern";
         }
 
@@ -68,7 +64,7 @@ public class Pattern implements Serializable, Describable<Pattern> {
             return TYPES;
         }
     }
-    
+
     public enum PatternType {
         INCLUDE,
         EXCLUDE
