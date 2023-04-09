@@ -24,12 +24,10 @@
 package hudson.plugins.ws_cleanup;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-
 import hudson.Extension;
 import hudson.model.Node;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
-
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -40,19 +38,19 @@ import org.kohsuke.stapler.DataBoundConstructor;
 public class DisableDeferredWipeoutNodeProperty extends NodeProperty<Node> {
 
     @DataBoundConstructor
-    public DisableDeferredWipeoutNodeProperty() {
-    }
+    public DisableDeferredWipeoutNodeProperty() {}
 
     @Extension // this marker indicates Hudson that this is an implementation of an extension point.
     public static final class NodePropertyDescriptorImpl extends NodePropertyDescriptor {
 
-        public NodePropertyDescriptorImpl(){
+        public NodePropertyDescriptorImpl() {
             super(DisableDeferredWipeoutNodeProperty.class);
         }
 
         /**
          * This human readable name is used in the configuration screen.
          */
+        @Override
         @NonNull
         public String getDisplayName() {
             return Messages.DisableDeferredWipeoutNodeProperty_Name();

@@ -24,19 +24,15 @@
 package hudson.plugins.ws_cleanup;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-
 import hudson.FilePath;
 import hudson.model.Computer;
-
-import jenkins.model.Jenkins;
-
-import org.jenkinsci.plugins.resourcedisposer.AsyncResourceDisposer;
-import org.jenkinsci.plugins.resourcedisposer.Disposable;
-
 import java.io.IOException;
 import java.nio.file.FileSystemException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.resourcedisposer.AsyncResourceDisposer;
+import org.jenkinsci.plugins.resourcedisposer.Disposable;
 
 /**
  * Cleanup workspace wiping it out completely.
@@ -57,13 +53,14 @@ import java.util.logging.Logger;
     @Override
     protected void perform(FilePath workspace) throws IOException, InterruptedException {
         FilePath deleteMe = workspace.withSuffix("_ws-cleanup_" + System.currentTimeMillis());
-        Computer computer =  workspace.toComputer();
+        Computer computer = workspace.toComputer();
         if (computer == null) {
             performDelete(workspace);
             return;
         }
 
-        String errmsg = "Cleaning workspace synchronously. Failed to rename " + workspace.getRemote() + " to " + deleteMe.getName() + ".";
+        String errmsg = "Cleaning workspace synchronously. Failed to rename " + workspace.getRemote() + " to "
+                + deleteMe.getName() + ".";
         try {
             workspace.renameTo(deleteMe);
         } catch (FileSystemException expected) {
@@ -95,9 +92,13 @@ import java.util.logging.Logger;
             this.path = ws.getRemote();
         }
 
-        @NonNull public State dispose() throws Throwable {
+        @Override
+        @NonNull
+        public State dispose() throws Throwable {
             Jenkins j = Jenkins.getInstanceOrNull();
-            if (j == null) return State.TO_DISPOSE; // Going down?
+            if (j == null) {
+                return State.TO_DISPOSE; // Going down?
+            }
 
             // We grab the computer and file path here each time.  Caching the file path is
             // dangerous because a FilePath contains a Channel, implying
@@ -107,10 +108,12 @@ import java.util.logging.Logger;
             // this might mean we leak Channel objects for discarded machines
             // over time, eventually leading to an OOM.
             Computer computer = j.getComputer(node);
-            if (computer == null) return State.PURGED;
-            
+            if (computer == null) {
+                return State.PURGED;
+            }
+
             FilePath ws = new FilePath(computer.getChannel(), path);
-            
+
             try {
                 Wipeout.INSTANCE.performDelete(ws); // Use instance method for easy mocking of the behaviour
             } catch (IOException ex) {
@@ -122,12 +125,13 @@ import java.util.logging.Logger;
             }
 
             return ws.exists()
-                ? State.TO_DISPOSE // Failed to delete silently
-                : State.PURGED
-            ;
+                    ? State.TO_DISPOSE // Failed to delete silently
+                    : State.PURGED;
         }
 
-        @NonNull public String getDisplayName() {
+        @Override
+        @NonNull
+        public String getDisplayName() {
             return "Workspace " + (node.isEmpty() ? "master" : node) + ':' + path;
         }
     }
