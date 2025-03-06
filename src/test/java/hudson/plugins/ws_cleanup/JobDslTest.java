@@ -26,9 +26,9 @@ package hudson.plugins.ws_cleanup;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyIterable;
 import static org.hamcrest.Matchers.iterableWithSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.model.FreeStyleProject;
 import java.io.File;
@@ -36,25 +36,23 @@ import java.util.Collections;
 import java.util.List;
 import javaposse.jobdsl.dsl.DslScriptLoader;
 import javaposse.jobdsl.plugin.JenkinsJobManagement;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class JobDslTest {
-    @ClassRule
-    public static JenkinsRule j = new JenkinsRule();
+@WithJenkins
+class JobDslTest {
 
-    private void applyScript(String s) throws java.io.IOException {
-        JenkinsJobManagement jjm = new JenkinsJobManagement(System.out, Collections.emptyMap(), new File("."));
-        new DslScriptLoader(jjm).runScript(s);
-    }
+    private static JenkinsRule j;
 
-    private FreeStyleProject getJob(String emptyCleanWs) {
-        return j.jenkins.getItem(emptyCleanWs, j.jenkins, FreeStyleProject.class);
+    @BeforeAll
+    static void setUp(JenkinsRule rule) {
+        j = rule;
     }
 
     @Test
-    public void emptyCleanWs() throws Exception {
+    void emptyCleanWs() throws Exception {
         applyScript("job('emptyCleanWs') { publishers { cleanWs() } }");
 
         WsCleanup wsc = getJob("emptyCleanWs").getPublishersList().get(WsCleanup.class);
@@ -72,30 +70,32 @@ public class JobDslTest {
     }
 
     @Test
-    public void fullCleanWs() throws Exception {
-        applyScript("job('fullCleanWs') {" + "publishers {\n"
-                + "    cleanWs {\n"
-                + "        cleanWhenAborted(true)\n"
-                + "        cleanWhenFailure(true)\n"
-                + "        cleanWhenNotBuilt(false)\n"
-                + "        cleanWhenSuccess(true)\n"
-                + "        cleanWhenUnstable(true)\n"
-                + "        deleteDirs(true)\n"
-                + "        notFailBuild(true)\n"
-                + "        disableDeferredWipeout(true)\n"
-                + "        patterns {\n"
-                + "            pattern {\n"
-                + "                type('EXCLUDE')\n"
-                + "                pattern('.propsfile')\n"
-                + "            }\n"
-                + "            pattern {\n"
-                + "                type('INCLUDE')\n"
-                + "                pattern('.gitignore')\n"
-                + "            }\n"
-                + "        }\n"
-                + "    }\n"
-                + "}\n"
-                + "}");
+    void fullCleanWs() throws Exception {
+        applyScript(
+                """
+                job('fullCleanWs') {publishers {
+                    cleanWs {
+                        cleanWhenAborted(true)
+                        cleanWhenFailure(true)
+                        cleanWhenNotBuilt(false)
+                        cleanWhenSuccess(true)
+                        cleanWhenUnstable(true)
+                        deleteDirs(true)
+                        notFailBuild(true)
+                        disableDeferredWipeout(true)
+                        patterns {
+                            pattern {
+                                type('EXCLUDE')
+                                pattern('.propsfile')
+                            }
+                            pattern {
+                                type('INCLUDE')
+                                pattern('.gitignore')
+                            }
+                        }
+                    }
+                }
+                }""");
 
         WsCleanup wsc = getJob("fullCleanWs").getPublishersList().get(WsCleanup.class);
 
@@ -120,7 +120,7 @@ public class JobDslTest {
     }
 
     @Test
-    public void emptyPreBuildCleanup() throws Exception {
+    void emptyPreBuildCleanup() throws Exception {
         applyScript("job('emptyPreBuildCleanup') { wrappers { preBuildCleanup() } }");
 
         PreBuildCleanup pbc =
@@ -133,15 +133,18 @@ public class JobDslTest {
     }
 
     @Test
-    public void examplePreBuildCleanup() throws Exception {
-        applyScript("job('examplePreBuildCleanup') {\n" + "    wrappers {\n"
-                + "        preBuildCleanup {\n"
-                + "            includePattern('**/target/**')\n"
-                + "            deleteDirectories()\n"
-                + "            cleanupParameter('CLEANUP')\n"
-                + "        }\n"
-                + "    }\n"
-                + "}");
+    void examplePreBuildCleanup() throws Exception {
+        applyScript(
+                """
+                job('examplePreBuildCleanup') {
+                    wrappers {
+                        preBuildCleanup {
+                            includePattern('**/target/**')
+                            deleteDirectories()
+                            cleanupParameter('CLEANUP')
+                        }
+                    }
+                }""");
 
         PreBuildCleanup pbc =
                 getJob("examplePreBuildCleanup").getBuildWrappersList().get(PreBuildCleanup.class);
@@ -155,5 +158,14 @@ public class JobDslTest {
         Pattern ex = patterns.get(0);
         assertEquals(Pattern.PatternType.INCLUDE, ex.getType());
         assertEquals("**/target/**", ex.getPattern());
+    }
+
+    private static void applyScript(String s) throws java.io.IOException {
+        JenkinsJobManagement jjm = new JenkinsJobManagement(System.out, Collections.emptyMap(), new File("."));
+        new DslScriptLoader(jjm).runScript(s);
+    }
+
+    private static FreeStyleProject getJob(String emptyCleanWs) {
+        return j.jenkins.getItem(emptyCleanWs, j.jenkins, FreeStyleProject.class);
     }
 }
