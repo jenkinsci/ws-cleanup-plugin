@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jenkins.tasks.SimpleBuildStep;
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -52,7 +51,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
 
     private boolean notFailBuild = false;
     private boolean cleanupMatrixParent = false;
-    private String externalDelete = StringUtils.EMPTY;
+    private String externalDelete = "";
     private boolean disableDeferredWipeout = false;
 
     @DataBoundConstructor
