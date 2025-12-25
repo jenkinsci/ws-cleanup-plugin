@@ -20,13 +20,18 @@ toc::[]
 
 == Introduction
 
-This plugin deletes the build workspace.
+This plugin deletes the build workspace before or after a build,
+or at any time during a Pipeline execution.
+
 
 == Getting started
 
-=== https://jenkins.io/doc/book/pipeline/[Pipeline] jobs
+=== https://www.jenkins.io/doc/book/pipeline/[Pipeline] jobs
 
-There is a single https://www.jenkins.io/doc/pipeline/steps/ws-cleanup/[step] to be used whenever a workspace is allocated.
+
+There is a single https://www.jenkins.io/doc/pipeline/steps/ws-cleanup/[step] 
+that can be used whenever a workspace is allocated.
+
 
 === Declarative Pipeline
 
