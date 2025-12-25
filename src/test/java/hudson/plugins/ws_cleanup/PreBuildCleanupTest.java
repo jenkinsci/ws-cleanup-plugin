@@ -18,6 +18,8 @@ import hudson.slaves.EnvironmentVariablesNodeProperty.Entry;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -256,5 +258,27 @@ public class PreBuildCleanupTest {
         build = j.buildAndAssertSuccess(project);
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
         j.assertLogContains("Deferred wipeout is disabled by the node property...", build);
+    }
+
+    @Test
+    @LocalData
+    public void testEmptyPatternIsIgnoredSafely() throws Exception {
+        FreeStyleProject project = j.createFreeStyleProject("project-empty-pattern");
+        File workspace = new File(j.jenkins.getRootDir().getAbsolutePath(), "workspace");
+        project.setCustomWorkspace(workspace.getAbsolutePath());
+
+        List<Pattern> patterns = new ArrayList<>();
+        patterns.add(new Pattern("", PatternType.INCLUDE)); // empty pattern
+
+        PreBuildCleanup cleanup = new PreBuildCleanup(patterns, false, null, null, false);
+        project.getBuildWrappersList().add(cleanup);
+
+        FreeStyleBuild build = j.buildAndAssertSuccess(project);
+
+        // Cleanup should succeed and workspace should be empty
+        assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
+
+        // Log should mention empty pattern is skipped
+        j.assertLogContains("Skipping empty pattern", build);
     }
 }
