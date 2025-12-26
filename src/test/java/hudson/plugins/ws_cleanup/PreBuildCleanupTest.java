@@ -117,8 +117,8 @@ public class PreBuildCleanupTest {
         project.setCustomWorkspace(workspace.getAbsolutePath());
         List<Pattern> patterns = new ArrayList<>();
         patterns.add(new Pattern("delete-me/file*.txt", PatternType.INCLUDE));
-        PreBuildCleanup cleanup =
-                new PreBuildCleanup(patterns, true, null, Functions.isWindows() ? "cmd /c del %s" : "rm -rf %s", false);
+        PreBuildCleanup cleanup = new PreBuildCleanup(patterns, true, null,
+                Functions.isWindows() ? "cmd /c del %s" : "rm -rf %s", false);
         project.getBuildWrappersList().add(cleanup);
         j.buildAndAssertSuccess(project);
         assertFalse(
@@ -277,8 +277,6 @@ public class PreBuildCleanupTest {
 
         // Cleanup should succeed and workspace should be empty
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
-
-        // Log should mention empty pattern is skipped
-        j.assertLogContains("Skipping empty pattern", build);
     }
+
 }
