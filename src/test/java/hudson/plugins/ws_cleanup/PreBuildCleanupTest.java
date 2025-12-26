@@ -12,13 +12,13 @@ import hudson.Functions;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Slave;
+import hudson.plugins.ws_cleanup.Pattern;
 import hudson.plugins.ws_cleanup.Pattern.PatternType;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.EnvironmentVariablesNodeProperty.Entry;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -268,7 +268,7 @@ public class PreBuildCleanupTest {
         project.setCustomWorkspace(workspace.getAbsolutePath());
 
         List<Pattern> patterns = new ArrayList<>();
-        patterns.add(new Pattern("", PatternType.INCLUDE)); // empty pattern
+        patterns.add(new hudson.plugins.ws_cleanup.Pattern("", PatternType.INCLUDE)); // empty pattern
 
         PreBuildCleanup cleanup = new PreBuildCleanup(patterns, false, null, null, false);
         project.getBuildWrappersList().add(cleanup);
