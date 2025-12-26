@@ -71,7 +71,9 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         for (Pattern pattern : patterns) {
 
             // ✅ NEW: safely ignore empty / blank patterns
-            if (pattern == null || pattern.getPattern() == null || pattern.getPattern().trim().isEmpty()) {
+            if (pattern == null
+                    || pattern.getPattern() == null
+                    || pattern.getPattern().trim().isEmpty()) {
                 listener.getLogger().println("[ws-cleanup] Skipping empty pattern");
                 continue;
             }

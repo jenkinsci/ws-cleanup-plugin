@@ -12,14 +12,12 @@ import hudson.Functions;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Slave;
-import hudson.plugins.ws_cleanup.Pattern;
 import hudson.plugins.ws_cleanup.Pattern.PatternType;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.EnvironmentVariablesNodeProperty.Entry;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -117,8 +115,8 @@ public class PreBuildCleanupTest {
         project.setCustomWorkspace(workspace.getAbsolutePath());
         List<Pattern> patterns = new ArrayList<>();
         patterns.add(new Pattern("delete-me/file*.txt", PatternType.INCLUDE));
-        PreBuildCleanup cleanup = new PreBuildCleanup(patterns, true, null,
-                Functions.isWindows() ? "cmd /c del %s" : "rm -rf %s", false);
+        PreBuildCleanup cleanup =
+                new PreBuildCleanup(patterns, true, null, Functions.isWindows() ? "cmd /c del %s" : "rm -rf %s", false);
         project.getBuildWrappersList().add(cleanup);
         j.buildAndAssertSuccess(project);
         assertFalse(
@@ -278,5 +276,4 @@ public class PreBuildCleanupTest {
         // Cleanup should succeed and workspace should be empty
         assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
     }
-
 }
