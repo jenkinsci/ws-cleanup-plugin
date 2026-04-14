@@ -10,7 +10,7 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-link:https://ci.jenkins.io/job/Plugins/job/ws-cleanup-plugin/job/master/[image:https://ci.jenkins.io/job/Plugins/job/ws-cleanup-plugin/job/master/badge/icon[Build Status]]
+link:https://ci.jenkins.io/job/Plugins/job/ws-cleanup-plugin/job/master/[image:https://ci.jenkins.io/buildStatus/icon?job=Plugins%2Fws-cleanup-plugin%2Fmaster[Build Status]]
 link:https://github.com/jenkinsci/ws-cleanup-plugin/graphs/contributors[image:https://img.shields.io/github/contributors/jenkinsci/ws-cleanup-plugin.svg[Contributors]]
 link:https://plugins.jenkins.io/ws-cleanup[image:https://img.shields.io/jenkins/plugin/v/ws-cleanup.svg[Jenkins Plugin]]
 link:https://github.com/jenkinsci/ws-cleanup-plugin/releases/latest[image:https://img.shields.io/github/release/jenkinsci/ws-cleanup-plugin.svg?label=changelog[GitHub release]]
