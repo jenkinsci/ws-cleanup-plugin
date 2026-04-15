@@ -64,23 +64,37 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         DirectoryScanner ds = new DirectoryScanner();
         ds.setFollowSymlinks(false);
         ds.setBasedir(f);
+
         ArrayList<String> includes = new ArrayList<>();
         ArrayList<String> excludes = new ArrayList<>();
+
         for (Pattern pattern : patterns) {
+
+            // ✅ NEW: safely ignore empty / blank patterns
+            if (pattern == null
+                    || pattern.getPattern() == null
+                    || pattern.getPattern().trim().isEmpty()) {
+                listener.getLogger().println("[ws-cleanup] Skipping empty pattern");
+                continue;
+            }
+
             if (pattern.getType() == PatternType.INCLUDE) {
                 includes.add(pattern.getPattern());
             } else {
                 excludes.add(pattern.getPattern());
             }
         }
+
         // if there is no include pattern, set up ** (all) as include
         if (includes.isEmpty()) {
             includes.add("**/*");
         }
+
         String[] includesArray = new String[includes.size()];
         String[] excludesArray = new String[excludes.size()];
         includes.toArray(includesArray);
         excludes.toArray(excludesArray);
+
         ds.setIncludes(includesArray);
         ds.setExcludes(excludesArray);
         ds.scan();
@@ -120,14 +134,6 @@ class Cleanup extends RemoteCleaner implements FileCallable<Object> {
         return null;
     }
 
-    /**
-     *
-     * THB I don't remember what exactly original author meant in 998354608 (and why I merge it), but my understanding
-     * is that it should support windows tool, which can contain spaces in path to external tool as well as in paths to
-     * be deleted. If command or path contains spaces, not to split it, whole piece is quoted. It should also support
-     * some strange parameter order in form of $cmd %s /parameters.
-     *
-     */
     private List<String> fixQuotesAndExpand(String fullPath) {
         String tempCommand;
         if (deleteCommand.contains("%s")) {
