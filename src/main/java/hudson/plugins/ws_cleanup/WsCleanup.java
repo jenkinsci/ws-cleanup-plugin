@@ -276,7 +276,7 @@ public class WsCleanup extends Notifier implements MatrixAggregatable, SimpleBui
 
     @Override
     public boolean needsToRunAfterFinalized() {
-        return true;
+        return false;
     }
 
     public boolean isMatrixProject(Object o) {
