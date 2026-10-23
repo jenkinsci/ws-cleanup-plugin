@@ -4,9 +4,9 @@
  */
 package hudson.plugins.ws_cleanup;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.Functions;
 import hudson.model.FreeStyleBuild;
@@ -18,34 +18,40 @@ import hudson.slaves.EnvironmentVariablesNodeProperty.Entry;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.jvnet.hudson.test.recipes.LocalData;
 
 /**
  * @author lucinka
  */
-public class PreBuildCleanupTest {
+@WithJenkins
+class PreBuildCleanupTest {
 
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+    private JenkinsRule j;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        j = rule;
+    }
 
     @Test
     @LocalData
-    public void testCleanAllWorkspace() throws Exception {
+    void testCleanAllWorkspace() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject("project1");
         File workspace = new File(j.jenkins.getRootDir().getAbsolutePath(), "workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
         PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<>(), false, null, null, false);
         project.getBuildWrappersList().add(cleanup);
         j.buildAndAssertSuccess(project);
-        assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
+        assertEquals(0, workspace.listFiles().length, "Workspace should not contains any file.");
     }
 
     @Test
     @LocalData
-    public void testCleanWorkspaceByDeleteCommandIncludeDirectories() throws Exception {
+    void testCleanWorkspaceByDeleteCommandIncludeDirectories() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject("project1");
         File workspace = new File(j.jenkins.getRootDir().getAbsolutePath(), "workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
@@ -53,12 +59,12 @@ public class PreBuildCleanupTest {
                 new ArrayList<>(), true, null, Functions.isWindows() ? "cmd /c rd /s /q %s" : "rm -rf %s", false);
         project.getBuildWrappersList().add(cleanup);
         j.buildAndAssertSuccess(project);
-        assertFalse("File delete-me in workspace should not exists.", new File(workspace, "delete-me").exists());
+        assertFalse(new File(workspace, "delete-me").exists(), "File delete-me in workspace should not exists.");
     }
 
     @Test
     @LocalData
-    public void testCleanWorkspaceByDeleteCommandInNodePropertyIncludeDirectories() throws Exception {
+    void testCleanWorkspaceByDeleteCommandInNodePropertyIncludeDirectories() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject("project1");
         Slave slave = j.createOnlineSlave();
         project.setAssignedLabel(slave.getSelfLabel());
@@ -70,12 +76,12 @@ public class PreBuildCleanupTest {
         PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<>(), true, null, "delete", false);
         project.getBuildWrappersList().add(cleanup);
         j.buildAndAssertSuccess(project);
-        assertFalse("File delete-me in workspace should not exists.", new File(workspace, "delete-me").exists());
+        assertFalse(new File(workspace, "delete-me").exists(), "File delete-me in workspace should not exists.");
     }
 
     @Test
     @LocalData
-    public void testCleanWorkspaceByDeleteCommandWithoutDirectory() throws Exception {
+    void testCleanWorkspaceByDeleteCommandWithoutDirectory() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject("project1");
         File workspace = new File(j.jenkins.getRootDir().getAbsolutePath(), "workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
@@ -83,14 +89,14 @@ public class PreBuildCleanupTest {
                 new ArrayList<>(), false, null, Functions.isWindows() ? "cmd /c del %s" : "rm -rf %s", false);
         project.getBuildWrappersList().add(cleanup);
         j.buildAndAssertSuccess(project);
-        assertFalse("File file1.txt in workspace should not exists.", new File(workspace, "file1.txt").exists());
-        assertFalse("File file2.txt in workspace should not exists.", new File(workspace, "file2.txt").exists());
-        assertTrue("File not-delete-me in workspace should exists.", new File(workspace, "not-delete-me").exists());
+        assertFalse(new File(workspace, "file1.txt").exists(), "File file1.txt in workspace should not exists.");
+        assertFalse(new File(workspace, "file2.txt").exists(), "File file2.txt in workspace should not exists.");
+        assertTrue(new File(workspace, "not-delete-me").exists(), "File not-delete-me in workspace should exists.");
     }
 
     @Test
     @LocalData
-    public void testCleanWorkspaceByDeleteCommandInNodePropertyWithoutDirectory() throws Exception {
+    void testCleanWorkspaceByDeleteCommandInNodePropertyWithoutDirectory() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject("project1");
         Slave slave = j.createOnlineSlave();
         project.setAssignedLabel(slave.getSelfLabel());
@@ -102,14 +108,14 @@ public class PreBuildCleanupTest {
         PreBuildCleanup cleanup = new PreBuildCleanup(new ArrayList<>(), false, null, "delete", false);
         project.getBuildWrappersList().add(cleanup);
         j.buildAndAssertSuccess(project);
-        assertFalse("File file1.txt in workspace should not exists.", new File(workspace, "file1.txt").exists());
-        assertFalse("File file2.txt in workspace should not exists.", new File(workspace, "file2.txt").exists());
-        assertTrue("File not-delete-me in workspace should exists.", new File(workspace, "not-delete-me").exists());
+        assertFalse(new File(workspace, "file1.txt").exists(), "File file1.txt in workspace should not exists.");
+        assertFalse(new File(workspace, "file2.txt").exists(), "File file2.txt in workspace should not exists.");
+        assertTrue(new File(workspace, "not-delete-me").exists(), "File not-delete-me in workspace should exists.");
     }
 
     @Test
     @LocalData
-    public void testCleanWorkspaceByDeleteCommandWithPattern() throws Exception {
+    void testCleanWorkspaceByDeleteCommandWithPattern() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject("project1");
         File workspace = new File(j.jenkins.getRootDir().getAbsolutePath(), "workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
@@ -120,26 +126,26 @@ public class PreBuildCleanupTest {
         project.getBuildWrappersList().add(cleanup);
         j.buildAndAssertSuccess(project);
         assertFalse(
-                "File file1.txt in workspace should not exists.",
-                new File(workspace.getAbsolutePath() + "/delete-me/file1.txt").exists());
+                new File(workspace.getAbsolutePath() + "/delete-me/file1.txt").exists(),
+                "File file1.txt in workspace should not exists.");
         assertFalse(
-                "File file2.txt in workspace should exists.",
-                new File(workspace.getAbsolutePath() + "/delete-me/file2.txt").exists());
+                new File(workspace.getAbsolutePath() + "/delete-me/file2.txt").exists(),
+                "File file2.txt in workspace should exists.");
         assertTrue(
-                "File exclude1.txt in workspace should exists.",
-                new File(workspace.getAbsolutePath() + "/delete-me/exclude1.txt").exists());
+                new File(workspace.getAbsolutePath() + "/delete-me/exclude1.txt").exists(),
+                "File exclude1.txt in workspace should exists.");
         assertTrue(
-                "File exclude2.txt in workspace should exists.",
-                new File(workspace.getAbsolutePath() + "/delete-me/exclude2.txt").exists());
-        assertTrue("File file1.txt in workspace should exists.", new File(workspace, "file1.txt").exists());
-        assertTrue("File file2.txt in workspace should exists.", new File(workspace, "file2.txt").exists());
-        assertTrue("File exclude1.txt in workspace should exists.", new File(workspace, "exclude1.txt").exists());
-        assertTrue("File exclude2.txt in workspace should exists.", new File(workspace, "exclude2.txt").exists());
+                new File(workspace.getAbsolutePath() + "/delete-me/exclude2.txt").exists(),
+                "File exclude2.txt in workspace should exists.");
+        assertTrue(new File(workspace, "file1.txt").exists(), "File file1.txt in workspace should exists.");
+        assertTrue(new File(workspace, "file2.txt").exists(), "File file2.txt in workspace should exists.");
+        assertTrue(new File(workspace, "exclude1.txt").exists(), "File exclude1.txt in workspace should exists.");
+        assertTrue(new File(workspace, "exclude2.txt").exists(), "File exclude2.txt in workspace should exists.");
     }
 
     @Test
     @LocalData
-    public void testCleanWorkspaceByPatternIncludeWithoutDirectories() throws Exception {
+    void testCleanWorkspaceByPatternIncludeWithoutDirectories() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject("project1");
         File workspace = new File(j.jenkins.getRootDir().getAbsolutePath(), "workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
@@ -148,14 +154,14 @@ public class PreBuildCleanupTest {
         PreBuildCleanup cleanup = new PreBuildCleanup(patterns, false, null, null, false);
         project.getBuildWrappersList().add(cleanup);
         j.buildAndAssertSuccess(project);
-        assertFalse("File file1.txt in workspace should not exists.", new File(workspace, "file1.txt").exists());
-        assertTrue("File file2.txt in workspace should exists.", new File(workspace, "file2.txt").exists());
-        assertTrue("File not-delete-me in workspace should exists.", new File(workspace, "not-delete-me").exists());
+        assertFalse(new File(workspace, "file1.txt").exists(), "File file1.txt in workspace should not exists.");
+        assertTrue(new File(workspace, "file2.txt").exists(), "File file2.txt in workspace should exists.");
+        assertTrue(new File(workspace, "not-delete-me").exists(), "File not-delete-me in workspace should exists.");
     }
 
     @Test
     @LocalData
-    public void testCleanWorkspaceByPatternExcludeWithoutDirectories() throws Exception {
+    void testCleanWorkspaceByPatternExcludeWithoutDirectories() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject("project1");
         File workspace = new File(j.jenkins.getRootDir().getAbsolutePath(), "workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
@@ -164,14 +170,14 @@ public class PreBuildCleanupTest {
         PreBuildCleanup cleanup = new PreBuildCleanup(patterns, false, null, null, false);
         project.getBuildWrappersList().add(cleanup);
         j.buildAndAssertSuccess(project);
-        assertTrue("File file1.txt in workspace should exists.", new File(workspace, "file1.txt").exists());
-        assertFalse("File file2.txt in workspace should not exists.", new File(workspace, "file2.txt").exists());
-        assertTrue("File not-delete-me in workspace should exists.", new File(workspace, "not-delete-me").exists());
+        assertTrue(new File(workspace, "file1.txt").exists(), "File file1.txt in workspace should exists.");
+        assertFalse(new File(workspace, "file2.txt").exists(), "File file2.txt in workspace should not exists.");
+        assertTrue(new File(workspace, "not-delete-me").exists(), "File not-delete-me in workspace should exists.");
     }
 
     @Test
     @LocalData
-    public void testCleanWorkspaceByPatternWithDirectories() throws Exception {
+    void testCleanWorkspaceByPatternWithDirectories() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject("project1");
         File workspace = new File(j.jenkins.getRootDir().getAbsolutePath(), "workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
@@ -180,14 +186,14 @@ public class PreBuildCleanupTest {
         PreBuildCleanup cleanup = new PreBuildCleanup(patterns, true, null, null, false);
         project.getBuildWrappersList().add(cleanup);
         j.buildAndAssertSuccess(project);
-        assertFalse("File file1.txt in workspace should exists.", new File(workspace, "file1.txt").exists());
-        assertFalse("File file2.txt in workspace should exists.", new File(workspace, "file2.txt").exists());
-        assertFalse("File delete-me in workspace should not exists.", new File(workspace, "delete-me").exists());
+        assertFalse(new File(workspace, "file1.txt").exists(), "File file1.txt in workspace should exists.");
+        assertFalse(new File(workspace, "file2.txt").exists(), "File file2.txt in workspace should exists.");
+        assertFalse(new File(workspace, "delete-me").exists(), "File delete-me in workspace should not exists.");
     }
 
     @Test
     @LocalData
-    public void testCleanWorkspaceByPatternWithoutDirectories() throws Exception {
+    void testCleanWorkspaceByPatternWithoutDirectories() throws Exception {
         FreeStyleProject project = j.createFreeStyleProject("project1");
         File workspace = new File(j.jenkins.getRootDir().getAbsolutePath(), "workspace");
         project.setCustomWorkspace(workspace.getAbsolutePath());
@@ -196,14 +202,14 @@ public class PreBuildCleanupTest {
         PreBuildCleanup cleanup = new PreBuildCleanup(patterns, false, null, null, false);
         project.getBuildWrappersList().add(cleanup);
         j.buildAndAssertSuccess(project);
-        assertFalse("File file1.txt in workspace should not exists.", new File(workspace, "file1.txt").exists());
-        assertFalse("File file2.txt in workspace should not exists.", new File(workspace, "file2.txt").exists());
-        assertTrue("File delete-me in workspace should exists.", new File(workspace, "delete-me").exists());
+        assertFalse(new File(workspace, "file1.txt").exists(), "File file1.txt in workspace should not exists.");
+        assertFalse(new File(workspace, "file2.txt").exists(), "File file2.txt in workspace should not exists.");
+        assertTrue(new File(workspace, "delete-me").exists(), "File delete-me in workspace should exists.");
     }
 
     @Test
     @LocalData
-    public void disableDeferredWipeout() throws Exception {
+    void disableDeferredWipeout() throws Exception {
         File workspace = new File(j.jenkins.getRootDir().getAbsolutePath(), "workspace");
 
         // Deferred wipeout enabled
@@ -211,7 +217,7 @@ public class PreBuildCleanupTest {
         project.setCustomWorkspace(workspace.getAbsolutePath());
         project.getBuildWrappersList().add(new PreBuildCleanup(new ArrayList<>(), false, null, null, true));
         FreeStyleBuild build = j.buildAndAssertSuccess(project);
-        assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
+        assertEquals(0, workspace.listFiles().length, "Workspace should not contains any file.");
         j.assertLogContains("Deferred wipeout is disabled by the job configuration...", build);
 
         // Deferred wipeout disabled
@@ -219,7 +225,7 @@ public class PreBuildCleanupTest {
         project.setCustomWorkspace(workspace.getAbsolutePath());
         project.getBuildWrappersList().add(new PreBuildCleanup(new ArrayList<>(), false, null, null, false));
         build = j.buildAndAssertSuccess(project);
-        assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
+        assertEquals(0, workspace.listFiles().length, "Workspace should not contains any file.");
         j.assertLogContains("Deferred wipeout is used...", build);
 
         // Deferred wipeout default setting
@@ -227,7 +233,7 @@ public class PreBuildCleanupTest {
         project.setCustomWorkspace(workspace.getAbsolutePath());
         project.getBuildWrappersList().add(new PreBuildCleanup(new ArrayList<>(), false, null, null, false));
         build = j.buildAndAssertSuccess(project);
-        assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
+        assertEquals(0, workspace.listFiles().length, "Workspace should not contains any file.");
         j.assertLogContains("Deferred wipeout is used...", build);
 
         // Attach a DisableDeferredWipeout node property to the master node
@@ -238,7 +244,7 @@ public class PreBuildCleanupTest {
         project.setCustomWorkspace(workspace.getAbsolutePath());
         project.getBuildWrappersList().add(new PreBuildCleanup(new ArrayList<>(), false, null, null, true));
         build = j.buildAndAssertSuccess(project);
-        assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
+        assertEquals(0, workspace.listFiles().length, "Workspace should not contains any file.");
         j.assertLogContains("Deferred wipeout is disabled by the job configuration...", build);
 
         // Deferred wipeout disabled
@@ -246,7 +252,7 @@ public class PreBuildCleanupTest {
         project.setCustomWorkspace(workspace.getAbsolutePath());
         project.getBuildWrappersList().add(new PreBuildCleanup(new ArrayList<>(), false, null, null, false));
         build = j.buildAndAssertSuccess(project);
-        assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
+        assertEquals(0, workspace.listFiles().length, "Workspace should not contains any file.");
         j.assertLogContains("Deferred wipeout is disabled by the node property...", build);
 
         // Deferred wipeout default setting
@@ -254,7 +260,7 @@ public class PreBuildCleanupTest {
         project.setCustomWorkspace(workspace.getAbsolutePath());
         project.getBuildWrappersList().add(new PreBuildCleanup(new ArrayList<>(), false, null, null, false));
         build = j.buildAndAssertSuccess(project);
-        assertEquals("Workspace should not contains any file.", 0, workspace.listFiles().length);
+        assertEquals(0, workspace.listFiles().length, "Workspace should not contains any file.");
         j.assertLogContains("Deferred wipeout is disabled by the node property...", build);
     }
 }
